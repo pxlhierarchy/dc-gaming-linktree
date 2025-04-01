@@ -6,6 +6,7 @@
     <title>DC Gaming</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
     <div class="profile">
@@ -15,47 +16,30 @@
     </div>
 
     <div class="links" id="links">
-        <!-- Links will be dynamically inserted here -->
+        <!-- Gear Recommendations Link (Always at top) -->
+        <a href="{{ url_for('gear') }}" class="link-item">
+            <span class="link-icon">
+                <i class="fas fa-gamepad"></i>
+            </span>
+            <span>Gear Recommendations</span>
+        </a>
+        <!-- Other Links -->
+        {% for link in links %}
+        <a href="{{ url_for('track_click', id=link.id) }}" class="link-item">
+            {% if link.icon %}
+            <span class="link-icon">
+                <i class="{{ link.icon }}"></i>
+            </span>
+            {% endif %}
+            <span>{{ link.title }}</span>
+        </a>
+        {% endfor %}
     </div>
 
     <div class="social-icons">
-        <span class="social-icon">👾</span>
-        <span class="social-icon">🎲</span>
-        <span class="social-icon">🎮</span>
+        <a href="#" class="social-icon"><i class="fas fa-gamepad"></i></a>
+        <a href="#" class="social-icon"><i class="fas fa-trophy"></i></a>
+        <a href="#" class="social-icon"><i class="fas fa-dice"></i></a>
     </div>
-
-    <script>
-        // Fetch and display links
-        fetch('/api/links')
-            .then(response => response.json())
-            .then(links => {
-                const linksContainer = document.getElementById('links');
-                links.forEach(link => {
-                    const linkElement = document.createElement('a');
-                    linkElement.href = `/track/${link.id}`;
-                    linkElement.className = 'link-item';
-                    linkElement.target = '_blank';
-                    
-                    let iconHtml = '';
-                    if (link.icon) {
-                        iconHtml = `
-                            <span class="link-icon">
-                                <svg viewBox="0 0 24 24" width="24" height="24">
-                                    <path d="${link.icon}" fill="#ffffff"/>
-                                </svg>
-                            </span>
-                        `;
-                    }
-                    
-                    linkElement.innerHTML = `
-                        ${iconHtml}
-                        <span>${link.title}</span>
-                    `;
-                    
-                    linksContainer.appendChild(linkElement);
-                });
-            })
-            .catch(error => console.error('Error fetching links:', error));
-    </script>
 </body>
 </html> 

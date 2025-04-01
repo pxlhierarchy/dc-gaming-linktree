@@ -3,42 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="DC Gaming's recommended gear for streaming and speedrunning">
     <title>Gear Recommendations - DC Gaming</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
-    <!-- Main Container -->
-    <div class="container">
-        <!-- Profile Section -->
-        <div class="profile">
-            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="DC Gaming Logo" class="profile-img">
-            <h1 class="profile-name">Gear Recommendations</h1>
-            <p class="profile-bio">Check out the equipment I use for streaming and speedrunning!</p>
-            <a href="{{ url_for('index') }}" class="back-btn">Back to Home</a>
-        </div>
+    <div class="profile">
+        <img src="{{ url_for('static', filename='images/logo.png') }}" alt="DC Gaming Logo" class="profile-img">
+        <h1 class="profile-name">Gear Recommendations</h1>
+        <p class="profile-bio">Check out the equipment I use for streaming and speedrunning!</p>
+        <a href="{{ url_for('index') }}" class="back-btn">Back to Home</a>
+    </div>
 
-        <!-- Gear Items Section -->
-        <div class="gear-container">
+    <div class="gear-container">
+        <div class="gear-list">
             {% for gear in gear_items %}
-            <div class="gear-item">
-                <img src="{{ url_for('static', filename=gear.image) }}" alt="{{ gear.title }}" class="gear-image">
-                <div class="gear-info">
+            <a href="{{ url_for('track_gear_click', id=gear.id) }}" target="_blank" class="gear-item">
+                <div class="gear-content">
                     <h3 class="gear-title">{{ gear.title }}</h3>
                     <p class="gear-description">{{ gear.description }}</p>
                     <p class="gear-price">{{ gear.price }}</p>
                 </div>
-                <a href="{{ url_for('track_gear_click', id=gear.id) }}" class="gear-link" target="_blank">View on Amazon</a>
-            </div>
+                <div class="gear-image-container">
+                    <img src="{{ gear.image }}" alt="{{ gear.title }}" class="gear-image">
+                </div>
+            </a>
             {% endfor %}
         </div>
+    </div>
 
-        <!-- Social Icons -->
-        <div class="social-icons">
-            <span>👾</span>
-            <span>🎲</span>
-            <span>🎮</span>
-        </div>
+    <div class="social-icons">
+        <a href="#" class="social-icon"><i class="fas fa-gamepad"></i></a>
+        <a href="#" class="social-icon"><i class="fas fa-trophy"></i></a>
+        <a href="#" class="social-icon"><i class="fas fa-dice"></i></a>
     </div>
 </body>
 </html> 
