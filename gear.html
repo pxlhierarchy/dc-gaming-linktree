@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DC Gaming - Gear Recommendations</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <a href="/" class="back-button">← BACK</a>
+
+    <div class="profile">
+        <img src="/static/images/logo.png" alt="Profile Picture" class="profile-img">
+        <h1 class="profile-name">DC Gaming</h1>
+        <p class="profile-bio">Donkey Kong Country Speedrunning and other shenanigans</p>
+    </div>
+
+    <div class="gear-container">
+        <div class="gear-header">
+            <h2>GEAR RECOMMENDATIONS</h2>
+            <p>Essential equipment for speedrunning</p>
+        </div>
+        <ul class="gear-list">
+            <li class="gear-item">
+                <a href="https://amzn.to/4jgjI6N" target="_blank">
+                    <img src="/static/images/capturecard.jpg" alt="Capture Card" class="gear-image">
+                    <div class="gear-content">
+                        <div class="gear-title">Capture Card</div>
+                        <div class="gear-description">Mirabox USB3.0 HDMI Video Capture Card</div>
+                        <div class="gear-price">$50-60 CAD</div>
+                    </div>
+                </a>
+            </li>
+            <li class="gear-item">
+                <a href="https://www.retrotink.com/product-page/2x-mini" target="_blank">
+                    <img src="/static/images/retrotink.avif" alt="Controller" class="gear-image">
+                    <div class="gear-content">
+                        <div class="gear-title">Upscaler</div>
+                        <div class="gear-description">Retrotink basic upscaler for SNES and other consoles</div>
+                        <div class="gear-price">$100-140</div>
+                    </div>
+                </a>
+            </li>
+            <li class="gear-item">
+                <a href="https://amzn.to/4jbVgU6" target="_blank">
+                    <img src="/static/images/blueyeti.jpg" alt="Blue Yeti Microphone" class="gear-image">
+                    <div class="gear-content">
+                        <div class="gear-title">Microphone</div>
+                        <div class="gear-description">Blue Yeti USB Microphone - White</div>
+                        <div class="gear-price">$100 - 120 CAD</div>
+                    </div>
+                </a>
+            </li>
+            <li class="gear-item">
+                <a href="https://amzn.to/42aIX3i" target="_blank">
+                    <img src="/static/images/micstand.jpg" alt="Timer" class="gear-image">
+                    <div class="gear-content">
+                        <div class="gear-title">Desk Mic Stand</div>
+                        <div class="gear-description">If you want to stream you need one of these</div>
+                        <div class="gear-price">$20-25 CAD</div>
+                    </div>
+                </a>
+            </li>
+            <li class="gear-item">
+                <a href="https://amzn.to/3RwGtHu" target="_blank">
+                    <img src="/static/images/razr.jpg" alt="Emulator" class="gear-image">
+                    <div class="gear-content">
+                        <div class="gear-title">Headphones</div>
+                        <div class="gear-description">Best Gaming Headphones I've ever owned</div>
+                        <div class="gear-price">$160-180 CAD</div>
+                    </div>
+                </a>
+            </li>
+            <li class="gear-item">
+                <a href="https://amzn.to/4hUqiyD" target="_blank">
+                    <img src="/static/images/controller.jpg" alt="Streaming Software" class="gear-image">
+                    <div class="gear-content">
+                        <div class="gear-title">My Favorite DKC Speedrunning Controller</div>
+                        <div class="gear-description">I use an adaptor so I can use this controller on my SNES</div>
+                        <div class="gear-price">50-80</div>
+                    </div>
+                </a>
+            </li>
+        </ul>
+    </div>
+
+    <div class="social-icons">
+        <span class="social-icon">👾</span>
+        <span class="social-icon">🎲</span>
+        <span class="social-icon">🎮</span>
+    </div>
+
+    <script>
+        // Check if this is the first visit
+        document.addEventListener('DOMContentLoaded', function() {
+            const hasVisited = sessionStorage.getItem('hasVisited');
+            if (hasVisited) {
+                document.body.classList.add('no-animation');
+            } else {
+                sessionStorage.setItem('hasVisited', 'true');
+            }
+        });
+    </script>
+</body>
+</html> 

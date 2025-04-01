@@ -1,0 +1,501 @@
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideUp {
+    from { 
+        transform: translateY(20px);
+        opacity: 0;
+    }
+    to { 
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'VT323', monospace;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+body {
+    margin: 0;
+    padding: 1rem;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: #000000;
+    color: #ffffff;
+    font-family: 'VT323', monospace;
+    opacity: 1;
+}
+
+.banner {
+    width: 100%;
+    max-width: 800px;
+    margin-bottom: 2rem;
+    border: 2px solid #E50914;
+    background-color: #1a1a1a;
+    padding: 1rem;
+    text-align: center;
+    position: relative;
+    display: none; /* Hidden by default */
+}
+
+.banner.show {
+    display: block;
+}
+
+.banner-content {
+    font-size: 1.2rem;
+    color: #E50914;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    animation: blink 1s infinite;
+}
+
+.banner-close {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    color: #E50914;
+    cursor: pointer;
+    font-size: 1rem;
+    padding: 2px 6px;
+    border: 1px solid #E50914;
+    background: none;
+}
+
+.banner-close:hover {
+    background-color: #E50914;
+    color: #000000;
+}
+
+@keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+.profile {
+    text-align: center;
+    margin-bottom: 2rem;
+    opacity: 1;
+    transform: none;
+}
+
+.profile-img {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    border: 3px solid #E50914;
+    margin-bottom: 1rem;
+    opacity: 1;
+}
+
+.profile-name {
+    font-family: 'Press Start 2P', cursive;
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    color: #E50914;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    opacity: 1;
+}
+
+.profile-bio {
+    color: #cccccc;
+    margin-bottom: 2rem;
+    max-width: 600px;
+    font-size: 1.2rem;
+    line-height: 1.4;
+    opacity: 1;
+}
+
+.links {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    width: 100%;
+    max-width: 600px;
+    opacity: 1;
+    transform: none;
+}
+
+.link-item {
+    background-color: #1a1a1a;
+    padding: 1rem;
+    border-radius: 0;
+    text-decoration: none;
+    color: #ffffff;
+    text-align: center;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 2px solid transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    font-size: 1.2rem;
+    opacity: 1;
+    transform: none;
+}
+
+.link-item:hover {
+    background-color: #E50914;
+    transform: translateY(-2px) scale(1.02);
+    border-color: #ffffff;
+    box-shadow: 0 4px 12px rgba(229, 9, 20, 0.2);
+    border-radius: 0;
+}
+
+.link-item:hover .link-icon svg {
+    fill: #ffffff;
+}
+
+.link-icon {
+    font-size: 1.5rem;
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.link-item:hover .link-icon {
+    transform: scale(1.1);
+}
+
+.link-icon svg {
+    width: 24px;
+    height: 24px;
+    fill: #ffffff;
+}
+
+.link-icon.twitch svg {
+    fill: #ffffff;
+}
+
+.link-icon.youtube svg {
+    fill: #ffffff;
+}
+
+.link-icon.tiktok svg {
+    fill: #ffffff;
+}
+
+.social-icons {
+    margin-top: 2rem;
+    display: flex;
+    gap: 2rem;
+    opacity: 1;
+    transform: none;
+}
+
+.social-icon {
+    opacity: 1;
+    color: #ffffff;
+    font-size: 2rem;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background-color: #1a1a1a;
+}
+
+.social-icon.twitch {
+    background-color: #9146FF;
+}
+
+.social-icon.youtube {
+    background-color: #FF0000;
+}
+
+.social-icon.tiktok {
+    background-color: #000000;
+}
+
+.social-icon:hover {
+    transform: scale(1.1) rotate(5deg);
+    box-shadow: 0 0 15px rgba(229, 9, 20, 0.5);
+}
+
+@media (max-width: 480px) {
+    body {
+        padding: 0.5rem;
+    }
+    
+    .banner {
+        padding: 0.8rem;
+        margin-bottom: 1rem;
+    }
+    
+    .banner-content {
+        font-size: 0.9rem;
+    }
+    
+    .profile-name {
+        font-size: 1.5rem;
+        letter-spacing: 1px;
+    }
+    
+    .profile-img {
+        width: 120px;
+        height: 120px;
+    }
+    
+    .profile-bio {
+        font-size: 1rem;
+        padding: 0 1rem;
+    }
+    
+    .links {
+        max-width: 100%;
+        gap: 0.8rem;
+    }
+
+    .link-item {
+        font-size: 1rem;
+        padding: 0.8rem;
+    }
+
+    .link-icon {
+        font-size: 1.2rem;
+    }
+
+    .link-icon svg {
+        width: 20px;
+        height: 20px;
+    }
+
+    .social-icons {
+        gap: 1.5rem;
+        margin-top: 1.5rem;
+    }
+
+    .social-icon {
+        font-size: 1.5rem;
+        width: 40px;
+        height: 40px;
+    }
+}
+
+/* Gear Page Styles */
+.gear-container {
+    width: 100%;
+    max-width: 800px;
+    margin-top: 2rem;
+    background-color: #1a1a1a;
+    border: 2px solid #E50914;
+    padding: 2rem;
+    opacity: 1;
+}
+
+.gear-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.gear-item {
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    border: 1px solid #E50914;
+    background-color: #000000;
+    position: relative;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.gear-item:hover {
+    transform: translateX(10px);
+    box-shadow: -5px 0 10px rgba(229, 9, 20, 0.2);
+}
+
+.gear-item::before {
+    content: ">";
+    position: absolute;
+    left: -1rem;
+    color: #E50914;
+    font-family: 'Press Start 2P', cursive;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.gear-item:hover::before {
+    opacity: 1;
+}
+
+.gear-title {
+    font-family: 'Press Start 2P', cursive;
+    font-size: 1rem;
+    color: #E50914;
+    margin-bottom: 0.5rem;
+}
+
+.gear-image {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    object-position: top;
+    border: 2px solid #E50914;
+    background-color: #000000;
+    padding: 5px;
+}
+
+.gear-content {
+    flex: 1;
+}
+
+.gear-description {
+    color: #cccccc;
+    font-size: 1.1rem;
+    line-height: 1.4;
+    margin-bottom: 0.5rem;
+}
+
+.gear-price {
+    color: #00ff00;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 0.8rem;
+}
+
+.back-button {
+    position: fixed;
+    top: 1rem;
+    left: 1rem;
+    background-color: #1a1a1a;
+    border: 2px solid #E50914;
+    color: #E50914;
+    padding: 0.5rem 1rem;
+    text-decoration: none;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 0.8rem;
+    transition: all 0.3s ease;
+    opacity: 1;
+}
+
+.back-button:hover {
+    background-color: #E50914;
+    color: #000000;
+    transform: translateX(-5px);
+}
+
+.gear-header {
+    text-align: center;
+    margin-bottom: 2rem;
+    opacity: 1;
+}
+
+.gear-header h2 {
+    font-family: 'Press Start 2P', cursive;
+    color: #E50914;
+    margin-bottom: 1rem;
+    font-size: 1.5rem;
+}
+
+.gear-header p {
+    color: #cccccc;
+    font-size: 1.2rem;
+}
+
+.gear-item a {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    text-decoration: none;
+    color: inherit;
+    width: 100%;
+    height: 100%;
+}
+
+.gear-item:hover a {
+    color: inherit;
+}
+
+@media (max-width: 480px) {
+    .gear-container {
+        padding: 1rem;
+        margin-top: 1rem;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .gear-item {
+        flex-direction: column;
+        text-align: center;
+        gap: 1rem;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .gear-image {
+        width: 120px;
+        height: 120px;
+    }
+
+    .gear-title {
+        font-size: 0.8rem;
+        word-wrap: break-word;
+        padding: 0 0.5rem;
+    }
+
+    .gear-description {
+        font-size: 0.9rem;
+        line-height: 1.5;
+        padding: 0 0.5rem;
+        word-wrap: break-word;
+    }
+
+    .gear-price {
+        font-size: 0.7rem;
+        padding: 0 0.5rem;
+    }
+
+    .back-button {
+        top: 0.5rem;
+        left: 0.5rem;
+        padding: 0.3rem 0.8rem;
+        font-size: 0.7rem;
+        z-index: 100;
+    }
+
+    .gear-header h2 {
+        font-size: 1.1rem;
+        padding: 0 0.5rem;
+    }
+
+    .gear-header p {
+        font-size: 0.9rem;
+        padding: 0 0.5rem;
+    }
+
+    .gear-item a {
+        padding: 0.5rem;
+    }
+
+    .gear-content {
+        width: 100%;
+        padding: 0 0.5rem;
+    }
+
+    .gear-item::before {
+        display: none;
+    }
+} 
