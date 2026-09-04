@@ -11,10 +11,13 @@
 
 <main id="main" class="links">
     {% for link in links %}
-    {# Internal pages are highlighted so they read as destinations on this site
-       rather than another outbound social link. #}
+    {# Two levels of emphasis: --highlight is the solid call-to-action (one at
+       a time), --featured marks internal pages so they read as destinations on
+       this site rather than another outbound social link. #}
     <a href="{{ url_for('track_click', id=link.id) }}"
-       class="link-item{% if link.url.startswith('/') %} link-item--featured{% endif %}"
+       class="link-item
+              {%- if link.highlight %} link-item--highlight
+              {%- elif link.url.startswith('/') %} link-item--featured{% endif %}"
        {% if link.url.startswith('http') %}target="_blank" rel="noopener noreferrer"{% endif %}>
         <span class="link-icon" aria-hidden="true">
             <i class="{{ link.icon or 'fas fa-link' }}"></i>

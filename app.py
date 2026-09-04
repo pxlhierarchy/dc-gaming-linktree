@@ -94,6 +94,9 @@ class Link(db.Model):
     url = db.Column(db.String(500), nullable=False)
     icon = db.Column(db.String(1000))
     position = db.Column(db.Integer, default=0)
+    # Renders as a solid call-to-action instead of a plain card. Reserved for
+    # one link at a time - two "primary" buttons is no emphasis at all.
+    highlight = db.Column(db.Boolean, default=False, nullable=False)
     clicks = db.Column(db.Integer, default=0)
     created_at = db.Column(db.DateTime, default=utcnow)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
@@ -105,6 +108,7 @@ class Link(db.Model):
             'url': self.url,
             'icon': self.icon,
             'position': self.position,
+            'highlight': self.highlight,
             'clicks': self.clicks,
         }
 

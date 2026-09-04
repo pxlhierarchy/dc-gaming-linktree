@@ -10,6 +10,8 @@ Usage:  venv/Scripts/python.exe set_links.py
 from app import app, db, Link, User
 
 # Order here is the order on the page.
+# 'highlight': True renders that link as a solid call-to-action. Use it on one
+# link at a time - two primary buttons cancel each other out.
 LINKS = [
     {
         'title': 'Set Up Emulator',
@@ -45,6 +47,7 @@ LINKS = [
         'title': 'Donate',
         'url': 'https://www.paypal.com/donate/?hosted_button_id=42YKZUXLBFFQ2',
         'icon': 'fab fa-paypal',
+        'highlight': True,
     },
 ]
 
@@ -66,15 +69,19 @@ def set_links():
 
         for position, item in enumerate(LINKS, start=1):
             link = existing.get(item['title'])
+            highlight = item.get('highlight', False)
             if link:
                 changed = (link.url != item['url'] or link.icon != item['icon']
-                           or link.position != position)
+                           or link.position != position or link.highlight != highlight)
                 link.url = item['url']
                 link.icon = item['icon']
                 link.position = position
+                link.highlight = highlight
                 print(f"  {'updated' if changed else 'ok     '}  {item['title']}")
             else:
-                db.session.add(Link(position=position, user_id=admin.id, **item))
+                db.session.add(Link(position=position, user_id=admin.id,
+                                    **{k: v for k, v in item.items() if k != 'highlight'},
+                                    highlight=highlight))
                 print(f"  added    {item['title']}")
 
         db.session.commit()

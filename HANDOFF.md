@@ -6,7 +6,7 @@ lands, so we never re-litigate settled choices.
 - **Repo:** `pxlhierarchy/dc-gaming-linktree`
 - **Local path:** `C:\Users\chungus\Documents\dcgaminglinks`
 - **Working branch:** `working-changes` (branched from `main` @ `6232606`)
-- **Last updated:** 2026-09-03 (donate link added; Vercel-ready, committed)
+- **Last updated:** 2026-09-03 (donate CTA highlighted; Vercel-ready, committed)
 
 ---
 
@@ -322,15 +322,15 @@ it now sits over artwork rather than a flat ground.
 
 **Links — live, 7 total** (Donate added 2026-09-03) (order = position on the page):
 
-| # | Title | URL |
-| --- | --- | --- |
+| # | Title | URL | |
+| --- | --- | --- | --- |
 | 1 | Set Up Emulator | `/setup-emulator` |
 | 2 | YouTube | https://youtube.com/@dcgaming6898 |
 | 3 | Twitch | https://twitch.tv/dcgaming708 |
 | 4 | X / Twitter | https://x.com/isaac708 |
 | 5 | speedrun.com | https://www.speedrun.com/users/deviantcode |
 | 6 | DKC Speedrunning Wiki | https://dkcspeedruns.com/Main_Page |
-| 7 | Donate | https://www.paypal.com/donate/?hosted_button_id=42YKZUXLBFFQ2 |
+| 7 | Donate | https://www.paypal.com/donate/?hosted_button_id=42YKZUXLBFFQ2 | **highlighted** |
 
 Discord and the old placeholder Twitter link were removed.
 
@@ -342,8 +342,37 @@ truth rather than hand-editing the database.
 venv/Scripts/python.exe set_links.py
 ```
 
-Internal links (`/`-prefixed) render with the `--featured` highlight so they
-read as destinations on this site rather than outbound social links.
+**Two levels of emphasis on the link list:**
+
+| Class | Applied to | Looks like |
+| --- | --- | --- |
+| `--highlight` | `Link.highlight == True` | Solid DK-tie red call-to-action |
+| `--featured` | Internal `/`-prefixed URLs | Yellow border + yellow wash |
+| *(none)* | Everything else | Plain dark card |
+
+`highlight` is a real Boolean column on `Link`, set via `set_links.py`, not a
+URL special-case — so any link can be promoted without touching template
+logic. **Use it on one link at a time**; two primary buttons cancel out.
+
+**Why red and not the yellow accent:** a plain link already flushes solid
+yellow on hover, so a yellow CTA would read as a permanently-hovered link. Red
+is also the DK tie, so it stays on-theme.
+
+**The red is deeper than `--hot`** (`#B32B1E`, not `#D93B2B`) because cream
+text on plain `--hot` only reaches 4.03:1 and fails AA. Measured:
+
+| State | Ratio |
+| --- | --- |
+| Rest `#B32B1E` + cream | 5.66:1 pass |
+| Hover `#C9331F` + cream | 4.67:1 pass |
+
+The CTA deliberately stays red on hover rather than lifting into the shared
+yellow, which would lose the distinction that makes it a CTA.
+
+**Schema note:** adding `highlight` meant the local SQLite file had to be
+rebuilt — `db.create_all()` adds tables, never columns. Production has not been
+deployed yet, so `init-db` will create it correctly first time. Any *future*
+column addition against a live database will need a real migration.
 
 Gear was removed on 2026-09-03 — see section 8.
 
