@@ -6,7 +6,7 @@ lands, so we never re-litigate settled choices.
 - **Repo:** `pxlhierarchy/dc-gaming-linktree`
 - **Local path:** `C:\Users\chungus\Documents\dcgaminglinks`
 - **Working branch:** `working-changes` (branched from `main` @ `6232606`)
-- **Last updated:** 2026-09-03 (donate CTA highlighted; Vercel-ready, committed)
+- **Last updated:** 2026-09-03 (pushed to GitHub main; Vercel deploy blocked on DB + env vars)
 
 ---
 
@@ -378,9 +378,25 @@ Gear was removed on 2026-09-03 — see section 8.
 
 ## 6. Open items / next up
 
-**In progress**
-- [ ] Merge `working-changes` and push, then import the repo on Vercel.
-- [ ] Attach Postgres, set `SECRET_KEY` + `ADMIN_PASSWORD`, run `init-db`.
+**Deploy status (2026-09-03)**
+- [x] Merged `working-changes` into `main` and pushed. `origin/main` is at
+      `da0f0b5`. Verified: no `.env` or `.db` on the remote.
+- [ ] **Vercel project link needs checking.** `create_git_project` reported the
+      project created (`prj_eGnDWqTTHT0Vm64QlyHTD3TJuJy6`) but said the git link
+      could not be verified, and the project does not appear in
+      `list_projects` for the team afterwards. **Do not create a second project
+      with the same name** — inspect the dashboard first.
+- [ ] Attach Postgres (Storage → Neon). Blocking: the app raises on boot
+      without `DATABASE_URL`.
+- [ ] Set `SECRET_KEY` and `ADMIN_PASSWORD`. Blocking: the app raises on boot
+      without `SECRET_KEY`.
+- [ ] Run `init-db` and `set_links.py` against the production `DATABASE_URL`.
+
+**Why the deploy could not be finished from here:** there is no MCP tool for
+managing environment variables or provisioning a database, and the Vercel CLI
+is not installed on this machine. Deploying without those would produce a site
+that returns 500 on every request — which is the guard working as designed, not
+a bug to debug.
 
 **Decided, not built**
 - [ ] Drag-and-drop link reordering (backend endpoint already exists).
