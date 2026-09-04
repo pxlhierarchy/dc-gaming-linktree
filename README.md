@@ -105,18 +105,20 @@ then log in at `/admin/login`.
 
 ## How it fits together on Vercel
 
-- `api/index.py` re-exports the Flask app; Vercel's Python runtime picks up the
-  module-level `app` as a WSGI callable.
-- `vercel.json` rewrites every path to that function and bundles `templates/`
-  and `static/` via `includeFiles`, plus cache and security headers.
+- `vercel.json` routes every request straight to `app.py`, which Vercel's
+  Python runtime serves as a WSGI app, and bundles `templates/` and `static/`
+  via `includeFiles`.
+- Routing to `app.py` directly (rather than rewriting to a function under
+  `api/`) is what preserves the request path: a rewrite hands the function its
+  *destination* path, so Flask saw `/api/index` for every URL and 404'd.
 - `.vercelignore` keeps the venv, the local SQLite file, `.env` and the local
   tooling scripts out of the deployment.
 
 ## Project layout
 
 ```
-app.py                  Flask app: models, routes, bootstrap
-api/index.py            Vercel entrypoint
+app.py                  Flask app: models, routes, bootstrap (also the
+                        Vercel entrypoint - @vercel/python serves `app`)
 set_links.py            Source of truth for the link list
 build_hero.py           Regenerates the og:image from source art
 templates/              base + admin_base shells, pages
