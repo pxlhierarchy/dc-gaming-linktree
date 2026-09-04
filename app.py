@@ -29,19 +29,23 @@ IS_SERVERLESS = bool(os.environ.get('VERCEL'))
 
 app = Flask(__name__)
 
+# Missing config used to raise at import. On serverless that surfaces only as
+# FUNCTION_INVOCATION_FAILED with no clue which variable is missing, and the
+# reason is buried in logs. Collect the problems instead and let the app boot,
+# then refuse every request with a page that names them - the site still fails
+# safe (nothing is read or written), but it says why.
+MISSING_CONFIG = []
+
 # On Vercel each request may be served by a different instance. A per-process
 # random key would sign every session with a different secret, so logins would
-# appear to work and then randomly drop. Fail loudly instead.
+# appear to work and then randomly drop.
 secret_key = os.environ.get('SECRET_KEY')
 if not secret_key:
     if IS_SERVERLESS:
-        raise RuntimeError(
-            "SECRET_KEY is not set. Add it in the Vercel project's Environment "
-            "Variables (Settings -> Environment Variables) before deploying; "
-            "without a stable key, admin sessions break between instances."
-        )
+        MISSING_CONFIG.append('SECRET_KEY')
+    else:
+        logger.warning("SECRET_KEY not set - using a random key for this run only.")
     secret_key = os.urandom(32)
-    logger.warning("SECRET_KEY not set - using a random key for this run only.")
 app.config['SECRET_KEY'] = secret_key
 
 # Handle the legacy postgres:// scheme that some providers still hand out.
@@ -50,11 +54,9 @@ if database_url and database_url.startswith('postgres://'):
     database_url = database_url.replace('postgres://', 'postgresql://', 1)
 
 if not database_url and IS_SERVERLESS:
-    raise RuntimeError(
-        "DATABASE_URL is not set. Serverless filesystems are read-only and "
-        "discarded between invocations, so SQLite cannot be used here. Attach a "
-        "Postgres database from the Vercel Marketplace and redeploy."
-    )
+    # Serverless filesystems are read-only and discarded between invocations,
+    # so SQLite would silently lose every write.
+    MISSING_CONFIG.append('DATABASE_URL')
 
 app.config['SQLALCHEMY_DATABASE_URI'] = database_url or 'sqlite:///linktree.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -135,6 +137,30 @@ class Preferences(db.Model):
             'accent_color': self.accent_color,
             'text_color': self.text_color,
         }
+
+
+if MISSING_CONFIG:
+    logger.error("Missing required configuration: %s", ', '.join(MISSING_CONFIG))
+
+    @app.before_request
+    def _refuse_until_configured():
+        """Block every request while required configuration is absent."""
+        names = ''.join(f'<li><code>{name}</code></li>' for name in MISSING_CONFIG)
+        return (
+            '<!doctype html><meta charset="utf-8">'
+            '<title>Configuration needed</title>'
+            '<style>body{font-family:system-ui,sans-serif;background:#0F1A12;'
+            'color:#F5F1E3;margin:0;display:grid;place-items:center;min-height:100vh}'
+            'main{max-width:34rem;padding:2rem}h1{color:#F5B921}'
+            'code{background:#18271A;padding:.15em .4em;border-radius:4px}</style>'
+            '<main><h1>Configuration needed</h1>'
+            f'<p>This deployment is missing required environment variables:</p><ul>{names}</ul>'
+            '<p>Set them in the Vercel project under '
+            '<strong>Settings &rarr; Environment Variables</strong>, for the '
+            '<strong>Production</strong> environment, then redeploy. Environment '
+            'variables are read at build time, so an existing deployment will not '
+            'pick them up until it is rebuilt.</p></main>'
+        ), 503
 
 
 @login_manager.user_loader
