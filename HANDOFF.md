@@ -396,7 +396,15 @@ Gear was removed on 2026-09-03 — see section 8.
 - [x] Ran `init-db` and `set_links.py` against production.
 - [ ] **Rotate the admin password.** It was seeded as `admin` because no
       `ADMIN_PASSWORD` was supplied at the time. Use the new command:
-      `ADMIN_PASSWORD='...' flask --app app set-admin-password` (min 12 chars).
+      `ADMIN_PASSWORD='...' flask --app app set-admin-password` (min 8 chars).
+
+      **The minimum was lowered 12 -> 8 on 2026-09-04 at the owner's request**,
+      who wanted a login that is quick to type. Recorded because it is a
+      deliberate trade, not an oversight: `/admin/login` has no rate limiting,
+      no lockout and no CSRF, and the username is always `admin`, so the
+      password is the only thing guarding a publicly reachable admin against
+      unlimited guesses. The durable fix is throttling in `admin_login()`,
+      offered and not taken for now.
 - [ ] **Rotate the Neon credential — now overdue.** The `DATABASE_URL` has been
       pasted into a chat transcript **twice** (2026-09-03 and again
       2026-09-04). Treat it as disclosed. Reset the password in the Neon

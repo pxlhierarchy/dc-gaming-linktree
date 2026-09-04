@@ -678,14 +678,23 @@ def set_admin_password_command():
 
         ADMIN_PASSWORD='new-password' flask --app app set-admin-password
 
+    Minimum 8 characters.
+
     init-db only seeds a password when it creates the user, so this is the way
     to rotate it on a database that already exists.
     """
     new_password = os.environ.get('ADMIN_PASSWORD')
     if not new_password:
         raise SystemExit("Set ADMIN_PASSWORD in the environment first.")
-    if len(new_password) < 12:
-        raise SystemExit("Use at least 12 characters for a live site.")
+    # 8 is the owner's call (2026-09-04), lowered from 12. It still blocks
+    # 'admin' and the other one-word guesses a scanner tries first. It is not
+    # a strong floor on its own: /admin/login has no rate limiting or lockout,
+    # so guesses are unlimited and the username is always 'admin'. Raise this
+    # again, or add throttling to admin_login(), if the site draws attention.
+    MIN_PASSWORD_LENGTH = 8
+    if len(new_password) < MIN_PASSWORD_LENGTH:
+        raise SystemExit(
+            "Use at least %d characters." % MIN_PASSWORD_LENGTH)
 
     with app.app_context():
         admin = User.query.filter_by(username='admin').first()
