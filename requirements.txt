@@ -1,9 +1,13 @@
-Flask==3.0.2
-Flask-SQLAlchemy==3.1.1
-Flask-Login==0.6.3
-Flask-WTF==1.1.1
-Werkzeug==3.0.1
-SQLAlchemy==2.0.28
-python-dotenv==1.0.1
-Pillow==10.0.0
-psycopg2-binary==2.9.9 
+Flask>=3.1.0
+Flask-SQLAlchemy>=3.1.1
+Flask-Login>=0.6.3
+SQLAlchemy>=2.0.36
+Werkzeug>=3.1.0
+python-dotenv>=1.0.1
+
+# Postgres driver, required on Vercel: serverless has no persistent disk, so
+# SQLite is not an option there. Unconditional - 2.9.12 ships wheels for every
+# Python version both this machine and Vercel run, so no environment marker is
+# needed (an earlier `python_version < "3.14"` marker would have silently
+# skipped the driver if Vercel's default Python moved up).
+psycopg2-binary>=2.9.12

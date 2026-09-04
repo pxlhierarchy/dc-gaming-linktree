@@ -1,84 +1,124 @@
 # DC Gaming Linktree
 
-A modern, customizable Linktree clone built with Flask and designed for deployment on Vercel.
+A small Flask link-in-bio site: link list with click tracking, an admin
+dashboard, and a "Set Up Emulator" guide page.
 
-## Features
+---
 
-- Customizable social media links
-- Gaming gear showcase
-- Click tracking for links and gear items
-- Admin dashboard for managing content
-- Responsive design
-- SVG icon support
+## Local development
 
-## Local Development
-
-1. Clone the repository:
-```bash
-git clone https://github.com/yourusername/dc-gaming-linktree.git
-cd dc-gaming-linktree
-```
-
-2. Create and activate a virtual environment:
 ```bash
 python -m venv venv
-source venv/bin/activate  # On Windows: .\venv\Scripts\activate
+venv/Scripts/python.exe -m pip install -r requirements.txt   # macOS/Linux: venv/bin/python
+venv/Scripts/python.exe -m flask run --debug --host 0.0.0.0 --port 5000
 ```
 
-3. Install dependencies:
+Open http://localhost:5000. Admin is at `/admin/login`.
+
+Copy `.env.example` to `.env` and set at least:
+
+```
+SECRET_KEY=<a long random string>
+ADMIN_PASSWORD=<your password>
+```
+
+Locally the app uses SQLite (`instance/linktree.db`) and creates the tables and
+an `admin` user on first run. Delete that file to start over.
+
+Links are managed by `set_links.py` — edit the `LINKS` list and re-run it:
+
 ```bash
-pip install -r requirements.txt
+venv/Scripts/python.exe set_links.py
 ```
 
-4. Set up environment variables:
-Create a `.env` file with the following variables:
-```
-SECRET_KEY=your-secret-key-here
-ADMIN_PASSWORD=your-admin-password
-```
+---
 
-5. Run the application:
+## Deploying to Vercel
+
+### 1. Push to GitHub
+
 ```bash
-python app.py
+git add -A
+git commit -m "Prepare for Vercel"
+git push -u origin main
 ```
 
-The application will be available at `http://localhost:5000`
+### 2. Add a Postgres database
 
-## Deployment to Vercel
+**This step is not optional.** Serverless filesystems are read-only and thrown
+away between invocations, so SQLite cannot be used on Vercel — the app refuses
+to start without `DATABASE_URL` rather than silently losing your data.
 
-1. Push your code to a GitHub repository
+In the Vercel dashboard: **Storage → Create Database → Neon (Postgres)**, then
+connect it to the project. Vercel injects `DATABASE_URL` automatically.
 
-2. Install the Vercel CLI:
+### 3. Import the repo
+
+Vercel dashboard → **Add New → Project** → pick the repo. It reads
+`vercel.json`; no framework preset or build command is needed.
+
+### 4. Set environment variables
+
+**Settings → Environment Variables**, for all environments:
+
+| Name | Value |
+| --- | --- |
+| `SECRET_KEY` | A long random string. Generate with `python -c "import secrets; print(secrets.token_hex(32))"` |
+| `ADMIN_PASSWORD` | The admin password to seed |
+
+`SECRET_KEY` must be set and must stay stable. Each request can be served by a
+different instance, so a rotating key would sign every session differently and
+logins would appear to work and then randomly drop. The app refuses to boot
+without it.
+
+### 5. Create the schema, once
+
+The app does **not** create tables on serverless — `db.create_all()` would run
+reflection queries on every cold start. Run it once from your machine, pointed
+at the production database:
+
 ```bash
-npm install -g vercel
+# Copy DATABASE_URL from the Vercel dashboard (Storage -> your database)
+DATABASE_URL="postgresql://..." ADMIN_PASSWORD="..." \
+  venv/Scripts/python.exe -m flask --app app init-db
 ```
 
-3. Deploy to Vercel:
+Then load your links into it:
+
 ```bash
-vercel
+DATABASE_URL="postgresql://..." venv/Scripts/python.exe set_links.py
 ```
 
-4. Set up environment variables in the Vercel dashboard:
-- `SECRET_KEY`: A secure random string for Flask session encryption
-- `ADMIN_PASSWORD`: Password for the admin dashboard
-- `DATABASE_URL`: URL for your database (Vercel provides PostgreSQL)
+### 6. Deploy
 
-5. Configure your domain in the Vercel dashboard
+Push to `main`, or hit **Deploy**. Check `/healthz` returns `{"status":"ok"}`,
+then log in at `/admin/login`.
 
-## Admin Dashboard
+---
 
-Access the admin dashboard at `/admin` with the following credentials:
-- Username: admin
-- Password: (set in ADMIN_PASSWORD environment variable)
+## How it fits together on Vercel
 
-## Contributing
+- `api/index.py` re-exports the Flask app; Vercel's Python runtime picks up the
+  module-level `app` as a WSGI callable.
+- `vercel.json` rewrites every path to that function and bundles `templates/`
+  and `static/` via `includeFiles`, plus cache and security headers.
+- `.vercelignore` keeps the venv, the local SQLite file, `.env` and the local
+  tooling scripts out of the deployment.
 
-1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
+## Project layout
 
-## License
+```
+app.py                  Flask app: models, routes, bootstrap
+api/index.py            Vercel entrypoint
+set_links.py            Source of truth for the link list
+build_hero.py           Regenerates the og:image from source art
+templates/              base + admin_base shells, pages
+static/                 styles.css, admin.css, admin.js, images
+vercel.json             Vercel routing, bundling, headers
+HANDOFF.md              Working doc: decisions, fixes, open items
+```
 
-This project is licensed under the MIT License - see the LICENSE file for details. 
+## Admin
+
+`/admin/login`, username `admin`, password from `ADMIN_PASSWORD`. The dashboard
+manages links and site preferences (title, description, colours).

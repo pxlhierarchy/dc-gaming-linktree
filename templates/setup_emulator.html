@@ -1,0 +1,212 @@
+{% extends "base.html" %}
+
+{% block title %}Set Up Emulator - {{ preferences.site_title if preferences else 'DC Gaming' }}{% endblock %}
+{% block description %}How to play Donkey Kong Country on your PC - emulator, ROM, controls.{% endblock %}
+
+{% block content %}
+<header class="profile">
+    <h1 class="profile-name">Set Up Emulator</h1>
+    <p class="profile-bio">
+        How to play Donkey Kong Country on your PC. About fifteen minutes,
+        start to finish.
+    </p>
+    <a href="{{ url_for('index') }}" class="back-btn">
+        <i class="fas fa-arrow-left" aria-hidden="true"></i> Back to Home
+    </a>
+</header>
+
+<main id="main" class="guide">
+
+    {# Sets the era immediately, and shows the exact hardware and the three
+       carts the guide is about. #}
+    <img src="{{ url_for('static', filename='images/snes-dkc.jpg') }}"
+         alt="A Super Nintendo console and controller beside boxed copies of Donkey Kong Country 1, 2 and 3, with a DK barrel mug."
+         class="guide-hero" width="516" height="387">
+
+
+    <!-- ============================================================== -->
+    <section class="guide-step">
+        <div class="step-head">
+            <span class="step-num" aria-hidden="true">1</span>
+            <h2 class="step-title">What you need</h2>
+        </div>
+        <div class="step-body">
+            <p>Two things, and that's it:</p>
+            <ul class="guide-list">
+                <li><strong>An emulator</strong> &mdash; software that makes your PC behave like a SNES.</li>
+                <li><strong>A ROM file</strong> &mdash; the game itself, as data.</li>
+            </ul>
+            <p>
+                Got the real thing? You can skip all of this &mdash; plug in a SNES and
+                play. This page is for everyone who doesn't.
+            </p>
+        </div>
+    </section>
+
+    <!-- ============================================================== -->
+    <section class="guide-step">
+        <div class="step-head">
+            <span class="step-num" aria-hidden="true">2</span>
+            <h2 class="step-title">Install Snes9x</h2>
+        </div>
+        <div class="step-body">
+            <p>
+                Snes9x is a free, open-source SNES emulator for Windows, macOS and Linux.
+                It's accurate, lightweight and the one most people start on.
+            </p>
+
+            <p class="cta-row">
+                <a href="https://www.snes9x.com/" class="guide-btn" target="_blank" rel="noopener noreferrer">
+                    <i class="fas fa-download" aria-hidden="true"></i> Download Snes9x
+                </a>
+            </p>
+
+            <ul class="guide-list">
+                <li>Grab the build that matches your system &mdash; on most Windows machines
+                    that's the <strong>Win64</strong> download.</li>
+                <li>There's no installer. Unzip the folder anywhere you like and run
+                    <code>snes9x.exe</code> straight out of it.</li>
+                <li>Keep the whole folder together &mdash; it stores your config and saves
+                    alongside the program.</li>
+            </ul>
+        </div>
+    </section>
+
+    <!-- ============================================================== -->
+    <section class="guide-step">
+        <div class="step-head">
+            <span class="step-num" aria-hidden="true">3</span>
+            <h2 class="step-title">Set up your controls</h2>
+        </div>
+        <div class="step-body">
+            <p>
+                Plug in a controller before you open Snes9x, then go to
+                <strong>Options &rarr; Input Configuration</strong>. Click each SNES button
+                in turn and press the button you want mapped to it.
+            </p>
+            <ul class="guide-list">
+                <li>A keyboard works fine to start, but a real controller makes a big
+                    difference on the tighter movement tricks.</li>
+                <li>Load a game with <strong>File &rarr; Open ROM</strong>, or just drag the
+                    file onto the window.</li>
+                <li>Display and fullscreen options live under
+                    <strong>Options &rarr; Display Configuration</strong>.</li>
+            </ul>
+
+            <p>
+                Save states let you snapshot the game anywhere and jump back to it &mdash;
+                great for practising a tricky barrel jump over and over.
+            </p>
+
+            <div class="guide-note">
+                <strong>Only if you later want to submit a run:</strong> leaderboards set
+                their own rules. They often require a specific emulator version, some don't
+                accept emulator runs at all, and save states are disallowed in essentially
+                every category. None of that matters if you're just here to play.
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================== -->
+    <section class="guide-step">
+        <div class="step-head">
+            <span class="step-num" aria-hidden="true">4</span>
+            <h2 class="step-title">What a ROM file is</h2>
+        </div>
+        <div class="step-body">
+            <p>
+                A ROM is a copy of the data on a game cartridge, saved as a single file on
+                your computer. "ROM" is just <em>read-only memory</em> &mdash; the chip
+                inside the cart that holds the game.
+            </p>
+            <p>
+                The emulator reads that file the same way a SNES reads a cartridge. For
+                SNES games the file usually ends in <code>.sfc</code>, sometimes
+                <code>.smc</code>. They're typically a couple of megabytes &mdash; DKC is
+                about 4&nbsp;MB.
+            </p>
+            <p>
+                Emulators don't ship with games. You supply the ROM yourself.
+            </p>
+        </div>
+    </section>
+
+    <!-- ============================================================== -->
+    <section class="guide-step">
+        <div class="step-head">
+            <span class="step-num" aria-hidden="true">5</span>
+            <h2 class="step-title">Getting the right DKC ROM</h2>
+        </div>
+        <div class="step-body">
+            <p>
+                <strong>The version matters.</strong> Donkey Kong Country shipped in several
+                revisions and they don't all behave the same &mdash; later ones patched out
+                a number of the glitches the game is known for. The one to look for is:
+            </p>
+
+            <div class="rom-target">
+                <span class="rom-label">Target version</span>
+                <span class="rom-name">Donkey Kong Country (USA)</span>
+                <span class="rom-rev">Revision 1.0 &mdash; the original, unpatched release</span>
+            </div>
+
+            <p>
+                ROMs circulate widely online. Search that exact release name and add the file
+                extension (<code>.sfc</code>) to filter out storefronts and video results.
+                The sites hosting them come and go, so what turns up shifts over time &mdash;
+                but the release name is stable, and it's what you're looking for.
+            </p>
+
+            <div class="guide-note">
+                <strong>Verify what you downloaded.</strong> Don't trust the filename &mdash;
+                files get mislabelled constantly, and a v1.1 ROM named "1.0" will quietly
+                break the glitches you were after. Every clean copy has a known checksum
+                (a CRC32 or SHA-1 fingerprint). Look up the correct checksum for DKC 1.0 on
+                the resources below, generate the checksum of your file, and confirm they
+                match exactly. Snes9x will also show the ROM's details under
+                <strong>File &rarr; ROM Information</strong>.
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================== -->
+    <section class="guide-step">
+        <div class="step-head">
+            <span class="step-num" aria-hidden="true">6</span>
+            <h2 class="step-title">Where to go next</h2>
+        </div>
+        <div class="step-body">
+            <p>
+                That's it &mdash; go play it. If you catch the bug and want to go faster,
+                the DKC speedrunning wiki is the reference: route notes, trick tutorials,
+                category rules and the exact ROM details all live there.
+            </p>
+
+            <p class="cta-row">
+                <a href="https://dkcspeedruns.com/Main_Page" class="guide-btn" target="_blank" rel="noopener noreferrer">
+                    <i class="fas fa-book" aria-hidden="true"></i> DKC Speedrunning Wiki
+                </a>
+                <a href="https://www.speedrun.com/users/deviantcode" class="guide-btn guide-btn--ghost" target="_blank" rel="noopener noreferrer">
+                    <i class="fas fa-stopwatch" aria-hidden="true"></i> My speedrun.com
+                </a>
+            </p>
+
+            <p>
+                If you do start timing yourself, <strong>LiveSplit</strong> is the free
+                standard. Pick one category, learn it level by level, and ignore your times
+                for a while.
+            </p>
+
+            <p>
+                Stuck on any of this? Come ask in a stream &mdash; it's a friendly community
+                and nobody minds beginner questions.
+            </p>
+        </div>
+    </section>
+
+</main>
+
+<footer class="site-footer">
+    <p class="footer-note">&copy; {{ now_year }} {{ preferences.site_title if preferences else 'DC Gaming' }}</p>
+</footer>
+{% endblock %}

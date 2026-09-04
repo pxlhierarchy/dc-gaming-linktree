@@ -1,314 +1,612 @@
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
+/* ==========================================================================
+   DC Gaming - public site styles
+   Mobile-first. Breakpoints: base (<600), 600+, 900+.
 
-@keyframes slideUp {
-    from { 
-        transform: translateY(20px);
-        opacity: 0;
-    }
-    to { 
-        transform: translateY(0);
-        opacity: 1;
-    }
-}
+   Type: Titan One (chunky 90s display) + Rubik (legible geometric body).
+   Replaced Press Start 2P / VT323, which carried the era but were hard to
+   read at any real length.
 
-/* Base Styles and Reset */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: 'VT323', monospace;
-}
+   Palette: DKC jungle - night-jungle greens, banana yellow, DK-tie red,
+   barrel wood.
+   ========================================================================== */
 
-/* Reduce motion for accessibility */
-@media (prefers-reduced-motion: reduce) {
-    * {
-        animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 0.01ms !important;
-        scroll-behavior: auto !important;
-    }
-}
-
-/* Global Styles */
 :root {
-    --primary-color: #000000;
-    --secondary-color: #1a1a1a;
-    --accent-color: #E50914;
-    --text-color: #ffffff;
-    --link-hover-color: #E50914;
+    /* Ground + surfaces: green-biased neutrals, not flat grey */
+    --bg: #0F1A12;
+    --surface: #18271A;
+    --surface-hi: #223122;
+    --border: #35492E;
+    --border-hi: #4A6340;
+
+    /* Banana yellow carries the identity: highest contrast on jungle green,
+       so it does the heavy lifting on headings and icons. */
+    --accent: #F5B921;
+    --accent-ink: #2A1D02;             /* text that sits on yellow */
+    --accent-soft: rgba(245, 185, 33, 0.13);
+
+    /* DK's tie red - used sparingly, for one thing at a time */
+    --hot: #D93B2B;
+    --hot-soft: rgba(217, 59, 43, 0.15);
+
+    --wood: #8A5325;
+    --vine: #6FA83C;
+
+    --text: #F5F1E3;                   /* warm off-white, not clinical */
+    --text-muted: #A7B79C;
+
+    /* Wallpaper scrim. Heavier at the bottom, where the art is busiest.
+       The mobile artwork is much brighter, so it gets its own pair below. */
+    --scrim-top: rgba(12, 20, 14, 0.72);
+    --scrim-bottom: rgba(12, 20, 14, 0.88);
+
+    /* background-mobile.jpg is far brighter - mean rgb(160,127,33) against the
+       wallpaper's rgb(91,61,33), with pure white highlights. At the desktop
+       scrim the gold accent drops to 4.25:1 and fails AA, so it needs more. */
+    --scrim-top-sm: rgba(12, 20, 14, 0.82);
+    --scrim-bottom-sm: rgba(12, 20, 14, 0.90);
+
+    --font-display: 'Titan One', 'Arial Black', system-ui, sans-serif;
+    --font-body: 'Rubik', 'Segoe UI', system-ui, -apple-system, sans-serif;
+
+    --radius: 8px;
+    --gap: 0.6rem;
+    --gutter: clamp(1rem, 4vw, 1.5rem);
+    --tap: 48px;
+    --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+
+    /* Hard, blurless offset shadow - the era's house style, and it reads as
+       deliberate rather than as a soft modern drop shadow. */
+    --shadow: 4px 4px 0 var(--border);
+    --shadow-lift: 6px 6px 0 var(--border);
+}
+
+/* --------------------------------------------------------------------------
+   Reset
+   -------------------------------------------------------------------------- */
+*, *::before, *::after { box-sizing: border-box; }
+* { margin: 0; padding: 0; }
+
+html {
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
 }
 
 body {
-    margin: 0;
-    padding: 0;
-    font-family: 'VT323', monospace;
-    background-color: var(--primary-color);
-    color: var(--text-color);
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.6;
+    background-color: var(--bg);
+    color: var(--text);
+
     min-height: 100vh;
+    min-height: 100dvh;
+
+    position: relative;
+
     display: flex;
     flex-direction: column;
     align-items: center;
+
+    -webkit-font-smoothing: antialiased;
+
+    padding:
+        env(safe-area-inset-top) env(safe-area-inset-right)
+        env(safe-area-inset-bottom) env(safe-area-inset-left);
 }
 
-/* Banner Component */
-.banner {
-    width: 100%;
-    max-width: 800px;
-    margin-bottom: 2rem;
-    border: 2px solid #E50914;
-    background-color: #1a1a1a;
-    padding: 1rem;
-    text-align: center;
+img { max-width: 100%; height: auto; display: block; }
+a { color: inherit; text-decoration: none; }
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    font-weight: 400;
+    line-height: 1.2;
+    letter-spacing: 0.01em;
+    overflow-wrap: anywhere;
+}
+
+/* --------------------------------------------------------------------------
+   Page shell
+   -------------------------------------------------------------------------- */
+.page {
     position: relative;
-    display: none; /* Hidden by default */
+    z-index: 1;
+
+    width: 100%;
+    max-width: 640px;
+    margin-inline: auto;
+    padding-inline: var(--gutter);
+    padding-block: clamp(1rem, 4vw, 2rem) clamp(1.5rem, 6vw, 3rem);
+    display: flex;
+    flex-direction: column;
+    flex: 1;
 }
 
-.banner.show {
-    display: block;
-}
-
-.banner-content {
-    font-size: 1.2rem;
-    color: #E50914;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    animation: blink 1s infinite;
-}
-
-.banner-close {
+.skip-link {
     position: absolute;
-    top: 5px;
-    right: 5px;
-    color: #E50914;
-    cursor: pointer;
-    font-size: 1rem;
-    padding: 2px 6px;
-    border: 1px solid #E50914;
-    background: none;
+    left: -9999px;
+    top: 0;
+    background: var(--accent);
+    color: var(--accent-ink);
+    padding: 0.75rem 1rem;
+    z-index: 100;
+    font-weight: 600;
 }
 
-.banner-close:hover {
-    background-color: #E50914;
-    color: #000000;
+.skip-link:focus { left: 0; }
+
+:focus-visible {
+    outline: 3px solid var(--accent);
+    outline-offset: 3px;
 }
 
-/* Profile Section */
+/* --------------------------------------------------------------------------
+   Wallpaper - full-bleed DKC art behind everything
+
+   A fixed-position element rather than `background-attachment: fixed` on the
+   body: iOS Safari handles fixed attachment badly (jitter, and it silently
+   falls back to scrolling), while a fixed element is solid everywhere.
+
+   The scrim is the first background layer, painted over the photo in the same
+   element, so there is no extra node to keep in sync. --scrim-top and
+   --scrim-bottom are the dials: raise the alpha to push the art further back
+   if anything is hard to read, lower it to let more of the sunset through.
+   -------------------------------------------------------------------------- */
+.page-art {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+
+    background-image:
+        linear-gradient(to bottom, var(--scrim-top), var(--scrim-bottom)),
+        url("images/wallpaper.jpg");
+    background-repeat: no-repeat, no-repeat;
+    background-position: center, center;
+    background-size: cover, cover;
+}
+
+/* Narrow screens get their own artwork. The desktop wallpaper is 16:9, so on a
+   tall phone `cover` crops it to a thin vertical slice and the scene falls
+   apart; background-mobile.jpg is close to square and survives the crop.
+
+   Keyed on width, not a device check, so a phone turned landscape goes back to
+   the 16:9 wallpaper - which is exactly what suits that shape. */
+@media (max-width: 599.98px) {
+    .page-art {
+        background-image:
+            linear-gradient(to bottom, var(--scrim-top-sm), var(--scrim-bottom-sm)),
+            url("images/background-mobile.jpg");
+    }
+}
+
+/* --------------------------------------------------------------------------
+   Profile
+   -------------------------------------------------------------------------- */
 .profile {
     text-align: center;
-    padding: 2rem 0;
+    margin-bottom: clamp(1.5rem, 5vw, 2.25rem);
+}
+
+/* Home page logo mark - larger than the small header logo on inner pages,
+   since it is the first thing on the page. */
+.profile-mark {
+    width: clamp(104px, 28vw, 150px);
+    height: auto;
+    object-fit: contain;
+    margin: 0 auto 0.85rem;
+    filter: drop-shadow(4px 4px 0 rgba(0, 0, 0, 0.5));
 }
 
 .profile-img {
-    width: 150px;
-    height: 150px;
-    border-radius: 50%;
-    margin-bottom: 1rem;
-    border: 3px solid var(--accent-color);
+    width: clamp(76px, 20vw, 104px);
+    height: auto;
+    object-fit: contain;
+    margin: 0 auto 0.85rem;
+    filter: drop-shadow(3px 3px 0 rgba(0, 0, 0, 0.45));
 }
 
 .profile-name {
-    font-family: 'Press Start 2P', cursive;
-    font-size: 1.5rem;
-    margin: 0;
-    color: var(--accent-color);
+    font-size: clamp(1.5rem, 6vw, 2.25rem);
+    color: var(--accent);
+    /* Hard black edge - the way 90s box art set display type off its ground */
+    text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.85), 4px 4px 0 rgba(0, 0, 0, 0.4);
+    text-wrap: balance;
 }
 
 .profile-bio {
-    font-size: 1.2rem;
-    margin: 0.5rem 0;
-    color: var(--text-color);
+    font-size: clamp(0.92rem, 3vw, 1rem);
+    color: var(--text-muted);
+    margin-top: 0.85rem;
+    max-width: 44ch;
+    margin-inline: auto;
+    text-wrap: pretty;
 }
 
-/* Links Section */
+.error-code {
+    font-size: clamp(3rem, 16vw, 6rem);
+}
+
+/* --------------------------------------------------------------------------
+   Link list
+   -------------------------------------------------------------------------- */
 .links {
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap);
     width: 100%;
-    max-width: 600px;
-    padding: 0 1rem;
-    margin: 2rem 0;
 }
 
 .link-item {
-    display: flex;
+    display: grid;
+    grid-template-columns: 1.5rem 1fr 0.85rem;
     align-items: center;
-    justify-content: center;
-    padding: 1rem;
-    margin: 0.5rem 0;
-    background-color: var(--secondary-color);
-    text-decoration: none;
-    color: var(--text-color);
-    transition: all 0.3s ease;
-    border: 2px solid transparent;
-    text-align: center;
+    gap: 0.75rem;
+
+    min-height: var(--tap);
+    padding: 0.7rem 0.95rem;
+
+    background-color: var(--surface);
+    border: 3px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    color: var(--text);
+
+    transition: background-color 0.15s var(--ease),
+                border-color 0.15s var(--ease),
+                box-shadow 0.15s var(--ease),
+                transform 0.15s var(--ease);
 }
 
-.link-item:hover {
-    background-color: var(--accent-color);
-    transform: translateY(-2px);
-    border-color: var(--text-color);
+.link-item--featured {
+    border-color: var(--accent);
+    background-color: var(--accent-soft);
 }
 
 .link-icon {
-    margin-right: 1rem;
-    font-size: 1.2rem;
-}
-
-/* Social Icons */
-.social-icons {
-    margin-top: 2rem;
-    display: flex;
-    gap: 2rem;
-    justify-content: center;
-}
-
-.social-icon {
-    font-size: 1.8rem;
-    color: var(--text-color);
-    text-decoration: none;
-    transition: all 0.3s ease;
-}
-
-.social-icon:hover {
-    transform: translateY(-3px) scale(1.1);
-    color: var(--accent-color);
-}
-
-/* Gear Page Styles */
-.gear-container {
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 20px;
-}
-
-.gear-header {
+    font-size: 1.02rem;
+    color: var(--accent);
     text-align: center;
-    margin-bottom: 2rem;
+    transition: color 0.15s var(--ease);
 }
 
-.gear-header h2 {
-    color: #E50914;
-    font-family: 'Press Start 2P', cursive;
-    font-size: 1.5rem;
-    margin-bottom: 0.5rem;
+.link-label {
+    font-family: var(--font-display);
+    font-size: clamp(0.88rem, 3vw, 1rem);
+    line-height: 1.25;
+    overflow-wrap: anywhere;
 }
 
-.gear-header p {
-    color: #cccccc;
-    font-size: 1.2rem;
+.link-chevron {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    justify-self: end;
+    transition: transform 0.15s var(--ease), color 0.15s var(--ease);
 }
 
-.gear-list {
-    display: grid;
-    gap: 20px;
+@media (hover: hover) and (pointer: fine) {
+    .link-item:hover {
+        background-color: var(--accent);
+        border-color: var(--accent);
+        color: var(--accent-ink);
+        /* Pushes up and the shadow grows - a physical button press, inverted */
+        transform: translate(-2px, -2px);
+        box-shadow: var(--shadow-lift);
+    }
+
+    .link-item:hover .link-icon,
+    .link-item:hover .link-chevron { color: var(--accent-ink); }
+    .link-item:hover .link-chevron { transform: translateX(3px); }
 }
 
-.gear-item {
-    display: flex;
-    background-color: var(--secondary-color);
-    border: 2px solid var(--accent-color);
-    padding: 1.5rem;
-    text-decoration: none;
-    color: inherit;
-    transition: all 0.3s ease;
-    cursor: pointer;
+/* Press: sink into the shadow */
+.link-item:active {
+    transform: translate(2px, 2px);
+    box-shadow: 1px 1px 0 var(--border);
+}
+
+.empty-state {
+    text-align: center;
+    color: var(--text-muted);
+    padding: 2rem 0;
+}
+
+/* --------------------------------------------------------------------------
+   Buttons
+   -------------------------------------------------------------------------- */
+.back-btn {
+    display: inline-flex;
     align-items: center;
-    gap: 1.5rem;
+    justify-content: center;
+    gap: 0.5rem;
+
+    min-height: var(--tap);
+    padding: 0.7rem 1.4rem;
+    margin-top: 1.25rem;
+
+    background-color: var(--accent);
+    color: var(--accent-ink);
+    border: 3px solid var(--accent);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+
+    font-family: var(--font-display);
+    font-size: clamp(0.82rem, 2.8vw, 0.9rem);
+
+    transition: transform 0.15s var(--ease), box-shadow 0.15s var(--ease);
 }
 
-.gear-item:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(229, 9, 20, 0.2);
+@media (hover: hover) and (pointer: fine) {
+    .back-btn:hover {
+        transform: translate(-2px, -2px);
+        box-shadow: var(--shadow-lift);
+    }
 }
 
-.gear-content {
-    flex: 1;
-    text-align: left;
+.back-btn:active {
+    transform: translate(2px, 2px);
+    box-shadow: 1px 1px 0 var(--border);
 }
 
-.gear-title {
-    font-family: 'Press Start 2P', cursive;
-    font-size: 1.1em;
-    margin-bottom: 0.8rem;
-    color: #4CAF50;
-    line-height: 1.4;
+/* --------------------------------------------------------------------------
+   Footer
+   -------------------------------------------------------------------------- */
+.site-footer {
+    margin-top: auto;
+    padding-top: 2.5rem;
+    text-align: center;
 }
 
-.gear-description {
-    font-family: 'VT323', monospace;
-    font-size: 1.2em;
-    margin-bottom: 0.8rem;
-    color: var(--text-color);
-    line-height: 1.6;
+.footer-note {
+    color: var(--text-muted);
+    font-size: 0.9rem;
 }
 
-.gear-price {
-    font-family: 'Press Start 2P', cursive;
-    font-size: 0.9em;
-    color: #4CAF50;
-    margin: 0;
+/* ==========================================================================
+   Guide pages (New Runner Setup)
+   ========================================================================== */
+.guide-hero {
+    width: 100%;
+    border: 3px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    margin-bottom: 1.5rem;
 }
 
-.gear-image-container {
-    width: 150px;
-    height: 150px;
+.guide {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    width: 100%;
+}
+
+.guide-step {
+    background-color: var(--surface);
+    border: 3px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: clamp(1rem, 4vw, 1.4rem);
+}
+
+.step-head {
+    display: grid;
+    /* Number in a fixed column so multi-line titles stay aligned rather than
+       wrapping under the badge. */
+    grid-template-columns: 2.15rem 1fr;
+    align-items: center;
+    gap: 0.85rem;
+    padding-bottom: 0.85rem;
+    margin-bottom: 1rem;
+    border-bottom: 2px solid var(--border);
+}
+
+.step-num {
     display: flex;
     align-items: center;
     justify-content: center;
-    overflow: hidden;
-    background-color: var(--primary-color);
-    border: 2px solid var(--accent-color);
-    padding: 0.5rem;
+    width: 2.15rem;
+    height: 2.15rem;
+    background-color: var(--accent);
+    color: var(--accent-ink);
+    border-radius: 6px;
+    box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.4);
+    font-family: var(--font-display);
+    font-size: 1rem;
 }
 
-.gear-image {
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain;
+.step-title {
+    font-size: clamp(1rem, 3.7vw, 1.18rem);
+    color: var(--accent);
+    line-height: 1.25;
 }
 
-/* Button Styles */
-.back-btn {
-    display: inline-block;
-    background-color: var(--accent-color);
-    color: var(--text-color);
-    padding: 0.6rem 1.2rem;
-    text-decoration: none;
-    font-family: 'Press Start 2P', cursive;
-    font-size: 0.7rem;
-    margin-top: 1rem;
-    transition: all 0.3s ease;
+.step-body { display: flex; flex-direction: column; gap: 0.9rem; }
+
+.step-body p {
+    font-size: clamp(0.9rem, 2.9vw, 0.96rem);
+    line-height: 1.65;
+    color: var(--text-muted);
+    text-wrap: pretty;
 }
 
-.back-btn:hover {
-    background-color: var(--text-color);
-    color: var(--accent-color);
-    transform: translateY(-2px);
+.step-body strong { color: var(--text); font-weight: 600; }
+
+.step-body code {
+    font-family: ui-monospace, 'Cascadia Mono', 'Courier New', monospace;
+    font-size: 0.88em;
+    background-color: var(--bg);
+    border: 1px solid var(--border-hi);
+    border-radius: 4px;
+    padding: 0.1em 0.4em;
+    color: var(--text);
+    overflow-wrap: anywhere;
 }
 
-/* Animations */
-@keyframes blink {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.5; }
+.guide-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    padding: 0;
 }
 
-/* Responsive Design */
-@media (max-width: 600px) {
-    .profile-img {
-        width: 120px;
-        height: 120px;
+.guide-list li {
+    position: relative;
+    padding-left: 1.5rem;
+    font-size: clamp(0.9rem, 2.9vw, 0.96rem);
+    line-height: 1.6;
+    color: var(--text-muted);
+    text-wrap: pretty;
+}
+
+/* Banana-yellow chevron rather than a plain bullet */
+.guide-list li::before {
+    content: "\25B8";
+    position: absolute;
+    left: 0;
+    top: 0;
+    color: var(--accent);
+    font-size: 1.1em;
+    line-height: 1.5;
+}
+
+.guide-list li strong { color: var(--text); font-weight: 600; }
+
+.guide-note {
+    padding: 0.95rem 1.1rem;
+    background-color: var(--hot-soft);
+    border: 2px solid var(--hot);
+    border-radius: 6px;
+    font-size: clamp(0.92rem, 3.1vw, 1rem);
+    line-height: 1.6;
+    color: var(--text-muted);
+    text-wrap: pretty;
+}
+
+.guide-note strong { color: var(--text); font-weight: 600; }
+
+/* The one version that matters - given barrel-wood framing so it reads as
+   the single most important fact on the page */
+.rom-target {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    padding: 1rem 1.15rem;
+    background-color: var(--bg);
+    border: 3px solid var(--accent);
+    border-radius: var(--radius);
+    box-shadow: 4px 4px 0 var(--wood);
+}
+
+.rom-label {
+    font-family: var(--font-body);
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--accent);
+}
+
+.rom-name {
+    font-family: var(--font-display);
+    font-size: clamp(1.02rem, 3.9vw, 1.25rem);
+    color: var(--text);
+    line-height: 1.25;
+}
+
+.rom-rev {
+    font-size: clamp(0.9rem, 3.1vw, 1rem);
+    color: var(--text-muted);
+}
+
+.cta-row { display: flex; flex-wrap: wrap; gap: 0.6rem; }
+
+.guide-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.55rem;
+
+    min-height: var(--tap);
+    padding: 0.7rem 1.2rem;
+    flex: 1 1 100%;
+
+    background-color: var(--accent);
+    color: var(--accent-ink);
+    border: 3px solid var(--accent);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+
+    font-family: var(--font-display);
+    font-size: clamp(0.82rem, 2.8vw, 0.9rem);
+    line-height: 1.35;
+    text-align: center;
+
+    transition: transform 0.15s var(--ease), box-shadow 0.15s var(--ease);
+}
+
+.guide-btn--ghost {
+    background-color: transparent;
+    color: var(--accent);
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .guide-btn:hover {
+        transform: translate(-2px, -2px);
+        box-shadow: var(--shadow-lift);
     }
+}
 
-    .profile-name {
-        font-size: 1.2rem;
-    }
+.guide-btn:active {
+    transform: translate(2px, 2px);
+    box-shadow: 1px 1px 0 var(--border);
+}
 
-    .profile-bio {
-        font-size: 1rem;
-    }
+/* --------------------------------------------------------------------------
+   Tablet and up
+   -------------------------------------------------------------------------- */
+@media (min-width: 480px) {
+    .guide-btn { flex: 0 1 auto; }
+}
 
-    .link-item {
-        padding: 0.8rem;
+@media (min-width: 600px) {
+    .page { max-width: 680px; }
+}
+
+@media (min-width: 900px) {
+    body { font-size: 17px; }
+    .page { max-width: 760px; }
+}
+
+/* --------------------------------------------------------------------------
+   Short landscape phones - claw back vertical space
+   -------------------------------------------------------------------------- */
+@media (max-height: 480px) and (orientation: landscape) {
+    .page { padding-block: 1rem; }
+    .profile { margin-bottom: 1rem; }
+    .profile-mark { width: 96px; }
+    .profile-img { width: 68px; }
+}
+
+/* --------------------------------------------------------------------------
+   Accessibility
+   -------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
     }
-} 
+}
+
+@media (prefers-contrast: more) {
+    .link-item, .guide-step { border-color: var(--text); }
+    .profile-bio, .footer-note,
+    .step-body p, .guide-list li { color: var(--text); }
+}
+
+@media print {
+    body { background: #fff; color: #000; }
+    .link-chevron, .back-btn, .skip-link { display: none; }
+}

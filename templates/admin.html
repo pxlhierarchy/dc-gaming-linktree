@@ -1,142 +1,159 @@
-{% extends "base.html" %}
+{% extends "admin_base.html" %}
+
+{% block title %}Links - DC Gaming Admin{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>Admin Dashboard</h2>
-        <div>
-            <a href="{{ url_for('gear') }}" class="btn btn-primary me-2">Manage Gear</a>
-            <a href="{{ url_for('logout') }}" class="btn btn-danger">Logout</a>
+<h1 class="mb-4">Dashboard</h1>
+
+<ul class="nav nav-tabs mb-4" id="adminTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="links-tab" data-bs-toggle="tab"
+                data-bs-target="#links" type="button" role="tab"
+                aria-controls="links" aria-selected="true">Links</button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="preferences-tab" data-bs-toggle="tab"
+                data-bs-target="#preferences" type="button" role="tab"
+                aria-controls="preferences" aria-selected="false">Preferences</button>
+    </li>
+</ul>
+
+<div class="tab-content" id="adminTabsContent">
+    <!-- ============================ Links ============================ -->
+    <div class="tab-pane fade show active" id="links" role="tabpanel" aria-labelledby="links-tab">
+        <div class="card mb-4">
+            <div class="card-header"><h5 class="mb-0">Add New Link</h5></div>
+            <div class="card-body">
+                <form id="addLinkForm" novalidate>
+                    <div class="row g-3">
+                        <div class="col-12 col-md-6">
+                            <label for="title" class="form-label">Title</label>
+                            <input type="text" class="form-control" id="title" name="title"
+                                   autocomplete="off" required>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label for="url" class="form-label">URL</label>
+                            <input type="url" class="form-control" id="url" name="url"
+                                   inputmode="url" autocomplete="off"
+                                   placeholder="https://example.com" required>
+                        </div>
+                        <div class="col-12">
+                            <label for="icon" class="form-label">Icon (Font Awesome class)</label>
+                            <input type="text" class="form-control" id="icon" name="icon"
+                                   autocomplete="off" placeholder="e.g. fab fa-twitch">
+                            <div class="form-text">
+                                Browse names at
+                                <a href="https://fontawesome.com/search?o=r&m=free" target="_blank" rel="noopener">fontawesome.com</a>.
+                            </div>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary mt-3 w-100 w-sm-auto">Add Link</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header"><h5 class="mb-0">Current Links</h5></div>
+            <div class="card-body">
+                {% if links %}
+                <div class="table-responsive">
+                    <table class="table table-stack align-middle">
+                        <thead>
+                            <tr>
+                                <th scope="col">Title</th>
+                                <th scope="col">URL</th>
+                                <th scope="col">Clicks</th>
+                                <th scope="col">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="linksList">
+                            {% for link in links %}
+                            <tr data-id="{{ link.id }}">
+                                <td data-label="Title">
+                                    <i class="{{ link.icon or 'fas fa-link' }}" aria-hidden="true"></i>
+                                    {{ link.title }}
+                                </td>
+                                <td data-label="URL">
+                                    <div class="cell-url" title="{{ link.url }}">{{ link.url }}</div>
+                                </td>
+                                <td data-label="Clicks">{{ link.clicks or 0 }}</td>
+                                <td data-label="Actions">
+                                    <div class="row-actions">
+                                        <button class="btn btn-sm btn-primary edit-link"
+                                                data-id="{{ link.id }}"
+                                                data-title="{{ link.title }}"
+                                                data-url="{{ link.url }}"
+                                                data-icon="{{ link.icon or '' }}">Edit</button>
+                                        <button class="btn btn-sm btn-outline-danger delete-link"
+                                                data-id="{{ link.id }}"
+                                                data-title="{{ link.title }}">Delete</button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-secondary mb-0">No links yet. Add your first one above.</p>
+                {% endif %}
+            </div>
         </div>
     </div>
 
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            {% for category, message in messages %}
-                <div class="alert alert-{{ category }}">{{ message }}</div>
-            {% endfor %}
-        {% endif %}
-    {% endwith %}
-
-    <!-- Tab Navigation -->
-    <ul class="nav nav-tabs mb-4" id="adminTabs" role="tablist">
-        <li class="nav-item" role="presentation">
-            <button class="nav-link active" id="links-tab" data-bs-toggle="tab" data-bs-target="#links" type="button" role="tab">Links</button>
-        </li>
-        <li class="nav-item" role="presentation">
-            <button class="nav-link" id="preferences-tab" data-bs-toggle="tab" data-bs-target="#preferences" type="button" role="tab">Preferences</button>
-        </li>
-    </ul>
-
-    <!-- Tab Content -->
-    <div class="tab-content" id="adminTabsContent">
-        <!-- Links Tab -->
-        <div class="tab-pane fade show active" id="links" role="tabpanel">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">Add New Link</h5>
-                    <form id="addLinkForm">
-                        <div class="mb-3">
-                            <label for="title" class="form-label">Title</label>
-                            <input type="text" class="form-control" id="title" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="url" class="form-label">URL</label>
-                            <input type="url" class="form-control" id="url" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="icon" class="form-label">Icon (Font Awesome class)</label>
-                            <input type="text" class="form-control" id="icon" placeholder="e.g., fab fa-twitter">
-                        </div>
-                        <button type="submit" class="btn btn-primary">Add Link</button>
-                    </form>
-                </div>
-            </div>
-
-            <div class="card mt-4">
-                <div class="card-body">
-                    <h5 class="card-title">Current Links</h5>
-                    <div class="table-responsive">
-                        {% if links %}
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>Title</th>
-                                    <th>URL</th>
-                                    <th>Clicks</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="linksList">
-                                {% for link in links %}
-                                <tr>
-                                    <td><i class="{{ link.icon }}"></i> {{ link.title }}</td>
-                                    <td>{{ link.url }}</td>
-                                    <td>{{ link.clicks }}</td>
-                                    <td>
-                                        <button class="btn btn-sm btn-primary edit-link" data-id="{{ link.id }}" data-title="{{ link.title }}" data-url="{{ link.url }}" data-icon="{{ link.icon }}">Edit</button>
-                                        <button class="btn btn-sm btn-danger delete-link" data-id="{{ link.id }}">Delete</button>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                        {% else %}
-                        <p class="text-muted">No links found. Add your first link above!</p>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Preferences Tab -->
-        <div class="tab-pane fade" id="preferences" role="tabpanel">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">Site Preferences</h5>
-                    <form id="preferencesForm">
-                        <div class="mb-3">
+    <!-- ========================= Preferences ========================= -->
+    <div class="tab-pane fade" id="preferences" role="tabpanel" aria-labelledby="preferences-tab">
+        <div class="card">
+            <div class="card-header"><h5 class="mb-0">Site Preferences</h5></div>
+            <div class="card-body">
+                <form id="preferencesForm" novalidate>
+                    <div class="row g-3">
+                        <div class="col-12 col-md-6">
                             <label for="siteTitle" class="form-label">Site Title</label>
                             <input type="text" class="form-control" id="siteTitle" required>
                         </div>
-                        <div class="mb-3">
+                        <div class="col-12 col-md-6">
+                            <label for="profileImage" class="form-label">Profile Image URL</label>
+                            <input type="url" class="form-control" id="profileImage"
+                                   inputmode="url" placeholder="Leave blank to use the default logo">
+                        </div>
+                        <div class="col-12">
                             <label for="siteDescription" class="form-label">Site Description</label>
                             <input type="text" class="form-control" id="siteDescription" required>
                         </div>
-                        <div class="mb-3">
-                            <label for="profileImage" class="form-label">Profile Image URL</label>
-                            <input type="url" class="form-control" id="profileImage">
+                        <div class="col-4">
+                            <label for="backgroundColor" class="form-label">Background</label>
+                            <input type="color" class="form-control form-control-color"
+                                   id="backgroundColor" value="#0F1A12">
                         </div>
-                        <div class="mb-3">
-                            <label for="backgroundColor" class="form-label">Background Color</label>
-                            <input type="color" class="form-control form-control-color" id="backgroundColor" value="#000000">
+                        <div class="col-4">
+                            <label for="accentColor" class="form-label">Accent</label>
+                            <input type="color" class="form-control form-control-color"
+                                   id="accentColor" value="#F5B921">
                         </div>
-                        <div class="mb-3">
-                            <label for="accentColor" class="form-label">Accent Color</label>
-                            <input type="color" class="form-control form-control-color" id="accentColor" value="#E50914">
+                        <div class="col-4">
+                            <label for="textColor" class="form-label">Text</label>
+                            <input type="color" class="form-control form-control-color"
+                                   id="textColor" value="#F5F1E3">
                         </div>
-                        <div class="mb-3">
-                            <label for="textColor" class="form-label">Text Color</label>
-                            <input type="color" class="form-control form-control-color" id="textColor" value="#ffffff">
-                        </div>
-                        <button type="submit" class="btn btn-primary">Save Preferences</button>
-                    </form>
-                </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary mt-3">Save Preferences</button>
+                </form>
             </div>
         </div>
     </div>
 </div>
 
 <!-- Edit Link Modal -->
-<div class="modal fade" id="editLinkModal" tabindex="-1">
-    <div class="modal-dialog">
+<div class="modal fade" id="editLinkModal" tabindex="-1" aria-labelledby="editLinkModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Edit Link</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <h5 class="modal-title" id="editLinkModalLabel">Edit Link</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <form id="editLinkForm">
+                <form id="editLinkForm" novalidate>
                     <input type="hidden" id="editLinkId">
                     <div class="mb-3">
                         <label for="editTitle" class="form-label">Title</label>
@@ -144,11 +161,11 @@
                     </div>
                     <div class="mb-3">
                         <label for="editUrl" class="form-label">URL</label>
-                        <input type="url" class="form-control" id="editUrl" required>
+                        <input type="url" class="form-control" id="editUrl" inputmode="url" required>
                     </div>
                     <div class="mb-3">
                         <label for="editIcon" class="form-label">Icon (Font Awesome class)</label>
-                        <input type="text" class="form-control" id="editIcon" placeholder="e.g., fab fa-twitter">
+                        <input type="text" class="form-control" id="editIcon" placeholder="e.g. fab fa-twitch">
                     </div>
                 </form>
             </div>
@@ -159,149 +176,112 @@
         </div>
     </div>
 </div>
-
 {% endblock %}
 
 {% block scripts %}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Load preferences
-    fetch('/admin/preferences')
-        .then(response => response.json())
-        .then(data => {
-            if (data) {
-                document.getElementById('siteTitle').value = data.site_title || '';
-                document.getElementById('siteDescription').value = data.site_description || '';
-                document.getElementById('profileImage').value = data.profile_image || '';
-                document.getElementById('backgroundColor').value = data.background_color || '#000000';
-                document.getElementById('accentColor').value = data.accent_color || '#E50914';
-                document.getElementById('textColor').value = data.text_color || '#ffffff';
-            }
-        })
-        .catch(error => {
-            console.error('Error loading preferences:', error);
-        });
+document.addEventListener('DOMContentLoaded', function () {
+    var toast = Admin.toast, postJSON = Admin.postJSON, busy = Admin.busy;
 
-    // Save preferences
-    document.getElementById('preferencesForm').addEventListener('submit', function(e) {
+    // ---------------------------------------------------------------- Links
+    document.getElementById('addLinkForm').addEventListener('submit', function (e) {
         e.preventDefault();
-        const data = {
+        if (!this.reportValidity()) return;
+
+        var btn = this.querySelector('button[type="submit"]');
+        busy(btn, true, 'Adding...');
+
+        postJSON('/admin/links/add', new FormData(this))
+            .then(function () { window.location.reload(); })
+            .catch(function (err) {
+                busy(btn, false);
+                toast(err.message, 'error');
+            });
+    });
+
+    var editModalEl = document.getElementById('editLinkModal');
+    var editModal = new bootstrap.Modal(editModalEl);
+
+    document.querySelectorAll('.edit-link').forEach(function (button) {
+        button.addEventListener('click', function () {
+            document.getElementById('editLinkId').value = this.dataset.id;
+            document.getElementById('editTitle').value = this.dataset.title;
+            document.getElementById('editUrl').value = this.dataset.url;
+            document.getElementById('editIcon').value = this.dataset.icon;
+            editModal.show();
+        });
+    });
+
+    document.getElementById('saveEditLink').addEventListener('click', function () {
+        var form = document.getElementById('editLinkForm');
+        if (!form.reportValidity()) return;
+
+        var id = document.getElementById('editLinkId').value;
+        var data = new FormData();
+        data.append('title', document.getElementById('editTitle').value);
+        data.append('url', document.getElementById('editUrl').value);
+        data.append('icon', document.getElementById('editIcon').value);
+
+        busy(this, true, 'Saving...');
+        var btn = this;
+
+        postJSON('/admin/links/edit/' + id, data)
+            .then(function () { window.location.reload(); })
+            .catch(function (err) {
+                busy(btn, false);
+                toast(err.message, 'error');
+            });
+    });
+
+    document.querySelectorAll('.delete-link').forEach(function (button) {
+        button.addEventListener('click', function () {
+            if (!window.confirm('Delete "' + this.dataset.title + '"?')) return;
+
+            var btn = this;
+            busy(btn, true, '...');
+
+            postJSON('/admin/links/delete/' + this.dataset.id)
+                .then(function () { window.location.reload(); })
+                .catch(function (err) {
+                    busy(btn, false);
+                    toast(err.message, 'error');
+                });
+        });
+    });
+
+    // ---------------------------------------------------------- Preferences
+    fetch('/admin/preferences')
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+            if (!data) return;
+            document.getElementById('siteTitle').value = data.site_title || '';
+            document.getElementById('siteDescription').value = data.site_description || '';
+            document.getElementById('profileImage').value = data.profile_image || '';
+            document.getElementById('backgroundColor').value = data.background_color || '#0F1A12';
+            document.getElementById('accentColor').value = data.accent_color || '#F5B921';
+            document.getElementById('textColor').value = data.text_color || '#F5F1E3';
+        })
+        .catch(function () { toast('Could not load preferences', 'error'); });
+
+    document.getElementById('preferencesForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+        if (!this.reportValidity()) return;
+
+        var btn = this.querySelector('button[type="submit"]');
+        busy(btn, true, 'Saving...');
+
+        postJSON('/admin/preferences', {
             site_title: document.getElementById('siteTitle').value,
             site_description: document.getElementById('siteDescription').value,
             profile_image: document.getElementById('profileImage').value,
             background_color: document.getElementById('backgroundColor').value,
             accent_color: document.getElementById('accentColor').value,
             text_color: document.getElementById('textColor').value
-        };
-
-        fetch('/admin/preferences', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(data)
         })
-        .then(response => response.json())
-        .then(result => {
-            if (result.success) {
-                alert('Preferences saved successfully!');
-            } else {
-                alert('Error saving preferences: ' + result.message);
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Error saving preferences');
-        });
-    });
-
-    // Add Link Form
-    document.getElementById('addLinkForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const formData = new FormData();
-        formData.append('title', document.getElementById('title').value);
-        formData.append('url', document.getElementById('url').value);
-        formData.append('icon', document.getElementById('icon').value);
-        
-        fetch('/admin/links/add', {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                window.location.reload();
-            } else {
-                alert('Error adding link: ' + (data.message || 'Unknown error'));
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Error adding link. Please try again.');
-        });
-    });
-
-    // Edit Link
-    document.querySelectorAll('.edit-link').forEach(button => {
-        button.addEventListener('click', function() {
-            const linkId = this.dataset.id;
-            document.getElementById('editLinkId').value = linkId;
-            document.getElementById('editTitle').value = this.dataset.title;
-            document.getElementById('editUrl').value = this.dataset.url;
-            document.getElementById('editIcon').value = this.dataset.icon;
-            new bootstrap.Modal(document.getElementById('editLinkModal')).show();
-        });
-    });
-
-    // Save Edit
-    document.getElementById('saveEditLink').addEventListener('click', function() {
-        const linkId = document.getElementById('editLinkId').value;
-        const formData = new FormData();
-        formData.append('title', document.getElementById('editTitle').value);
-        formData.append('url', document.getElementById('editUrl').value);
-        formData.append('icon', document.getElementById('editIcon').value);
-        
-        fetch(`/admin/links/edit/${linkId}`, {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                window.location.reload();
-            } else {
-                alert('Error updating link: ' + (data.message || 'Unknown error'));
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Error updating link. Please try again.');
-        });
-    });
-
-    // Delete Link
-    document.querySelectorAll('.delete-link').forEach(button => {
-        button.addEventListener('click', function() {
-            if (confirm('Are you sure you want to delete this link?')) {
-                const linkId = this.dataset.id;
-                fetch(`/admin/links/delete/${linkId}`, {
-                    method: 'POST'
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        window.location.reload();
-                    } else {
-                        alert('Error deleting link: ' + (data.message || 'Unknown error'));
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('Error deleting link. Please try again.');
-                });
-            }
-        });
+            .then(function () { toast('Preferences saved'); })
+            .catch(function (err) { toast(err.message, 'error'); })
+            .finally(function () { busy(btn, false); });
     });
 });
 </script>
-{% endblock %} 
+{% endblock %}

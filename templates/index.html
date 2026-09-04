@@ -1,45 +1,33 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DC Gaming</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-</head>
-<body>
-    <div class="profile">
-        <img src="{{ url_for('static', filename='images/logo.png') }}" alt="DC Gaming Logo" class="profile-img">
-        <h1 class="profile-name">DC Gaming</h1>
-        <p class="profile-bio">Donkey Kong Country Speedrunning and other shenanigans</p>
-    </div>
+{% extends "base.html" %}
 
-    <div class="links" id="links">
-        <!-- Gear Recommendations Link (Always at top) -->
-        <a href="{{ url_for('gear') }}" class="link-item">
-            <span class="link-icon">
-                <i class="fas fa-gamepad"></i>
-            </span>
-            <span>Gear Recommendations</span>
-        </a>
-        <!-- Other Links -->
-        {% for link in links %}
-        <a href="{{ url_for('track_click', id=link.id) }}" class="link-item">
-            {% if link.icon %}
-            <span class="link-icon">
-                <i class="{{ link.icon }}"></i>
-            </span>
-            {% endif %}
-            <span>{{ link.title }}</span>
-        </a>
-        {% endfor %}
-    </div>
+{% block content %}
+{# The Kong art is a faded, oversized backdrop behind the header - see
+   .page-art in styles.css. The logo stands on its own here. #}
+<header class="profile">
+    <img src="{{ preferences.profile_image if preferences and preferences.profile_image else url_for('static', filename='images/logo-gold.png') }}"
+         alt="" class="profile-mark" width="366" height="366" fetchpriority="high">
+    <h1 class="profile-name">{{ preferences.site_title if preferences else 'DC Gaming' }}</h1>
+</header>
 
-    <div class="social-icons">
-        <a href="#" class="social-icon"><i class="fas fa-gamepad"></i></a>
-        <a href="#" class="social-icon"><i class="fas fa-trophy"></i></a>
-        <a href="#" class="social-icon"><i class="fas fa-dice"></i></a>
-    </div>
-</body>
-</html> 
+<main id="main" class="links">
+    {% for link in links %}
+    {# Internal pages are highlighted so they read as destinations on this site
+       rather than another outbound social link. #}
+    <a href="{{ url_for('track_click', id=link.id) }}"
+       class="link-item{% if link.url.startswith('/') %} link-item--featured{% endif %}"
+       {% if link.url.startswith('http') %}target="_blank" rel="noopener noreferrer"{% endif %}>
+        <span class="link-icon" aria-hidden="true">
+            <i class="{{ link.icon or 'fas fa-link' }}"></i>
+        </span>
+        <span class="link-label">{{ link.title }}</span>
+        <span class="link-chevron" aria-hidden="true"><i class="fas fa-chevron-right"></i></span>
+    </a>
+    {% else %}
+    <p class="empty-state">No links yet.</p>
+    {% endfor %}
+</main>
+
+<footer class="site-footer">
+    <p class="footer-note">&copy; {{ now_year }} {{ preferences.site_title if preferences else 'DC Gaming' }}</p>
+</footer>
+{% endblock %}

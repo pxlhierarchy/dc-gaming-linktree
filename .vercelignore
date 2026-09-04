@@ -1,0 +1,11 @@
+venv/
+__pycache__/
+*.pyc
+instance/
+*.db
+*.sqlite3
+.env
+HANDOFF.md
+build_hero.py
+set_links.py
+static/images/kongs.png
