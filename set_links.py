@@ -41,6 +41,11 @@ LINKS = [
         'url': 'https://dkcspeedruns.com/Main_Page',
         'icon': 'fas fa-book',
     },
+    {
+        'title': 'Donate',
+        'url': 'https://www.paypal.com/donate/?hosted_button_id=42YKZUXLBFFQ2',
+        'icon': 'fab fa-paypal',
+    },
 ]
 
 

@@ -6,7 +6,7 @@ lands, so we never re-litigate settled choices.
 - **Repo:** `pxlhierarchy/dc-gaming-linktree`
 - **Local path:** `C:\Users\chungus\Documents\dcgaminglinks`
 - **Working branch:** `working-changes` (branched from `main` @ `6232606`)
-- **Last updated:** 2026-09-03 (separate mobile background)
+- **Last updated:** 2026-09-03 (donate link added; Vercel-ready, committed)
 
 ---
 
@@ -309,33 +309,28 @@ it now sits over artwork rather than a flat ground.
 | Route | Auth | Purpose |
 | --- | --- | --- |
 | `/` | public | Link list |
-| `/gear` | public | Gear recommendations |
 | `/setup-emulator` | public | How to play DKC on a PC (emulator + ROM) |
 | `/track/<id>` | public | Count link click → redirect |
-| `/gear/<id>/click` | public | Count gear click → redirect |
 | `/api/links` | public | JSON link list |
 | `/healthz` | public | Health check |
 | `/admin/login`, `/admin/logout` | — | Auth |
 | `/admin` | required | Links + Preferences tabs |
 | `/admin/links/add\|edit\|delete\|reorder` | required | Link CRUD |
-| `/admin/gear` | required | Gear management |
-| `/admin/gear/add\|edit\|delete\|<id>` | required | Gear CRUD |
-| `/admin/gear/fetch` | required | Scrape title/image from a product URL |
 | `/admin/preferences` | required | GET / POST site theme |
 
 ### Data
 
-**Links — live, 7 total** (order = position on the page):
+**Links — live, 7 total** (Donate added 2026-09-03) (order = position on the page):
 
 | # | Title | URL |
 | --- | --- | --- |
 | 1 | Set Up Emulator | `/setup-emulator` |
-| 2 | Gear Recommendations | `/gear` |
-| 3 | YouTube | https://youtube.com/@dcgaming6898 |
-| 4 | Twitch | https://twitch.tv/dcgaming708 |
-| 5 | X / Twitter | https://x.com/isaac708 |
-| 6 | speedrun.com | https://www.speedrun.com/users/deviantcode |
-| 7 | DKC Speedrunning Wiki | https://dkcspeedruns.com/Main_Page |
+| 2 | YouTube | https://youtube.com/@dcgaming6898 |
+| 3 | Twitch | https://twitch.tv/dcgaming708 |
+| 4 | X / Twitter | https://x.com/isaac708 |
+| 5 | speedrun.com | https://www.speedrun.com/users/deviantcode |
+| 6 | DKC Speedrunning Wiki | https://dkcspeedruns.com/Main_Page |
+| 7 | Donate | https://www.paypal.com/donate/?hosted_button_id=42YKZUXLBFFQ2 |
 
 Discord and the old placeholder Twitter link were removed.
 
@@ -350,20 +345,16 @@ venv/Scripts/python.exe set_links.py
 Internal links (`/`-prefixed) render with the `--featured` highlight so they
 read as destinations on this site rather than outbound social links.
 
-**Gear:** still the 6 demo items from `seed_demo.py` — placeholder copy and
-`example.com` URLs, **awaiting the 6 real Amazon links.**
+Gear was removed on 2026-09-03 — see section 8.
 
 ## 6. Open items / next up
 
 **In progress**
-- [ ] Replace demo gear with 6 real Amazon products — image, title, short
-      description, opens in a new tab.
+- [ ] Merge `working-changes` and push, then import the repo on Vercel.
+- [ ] Attach Postgres, set `SECRET_KEY` + `ADMIN_PASSWORD`, run `init-db`.
 
 **Decided, not built**
 - [ ] Drag-and-drop link reordering (backend endpoint already exists).
-- [ ] `vercel.json` — the README documents a Vercel deploy but no config exists.
-      Note SQLite will not persist on serverless; needs Postgres via
-      `DATABASE_URL`.
 - [ ] CSRF protection. Flask-WTF was in the original requirements but never
       wired up; admin POSTs are currently unprotected.
 
@@ -377,31 +368,11 @@ read as destinations on this site rather than outbound social links.
 - The three social icons at the bottom of the home page were
   `<a href="#">` (gamepad / trophy / dice) pointing nowhere. Dropped for now —
   supply real destinations to bring them back.
+- The gear feature. See section 8; recoverable from git history.
 
 ---
 
-## 7. Amazon gear workflow
-
-`/admin/gear/fetch?url=<product url>` (login required) pulls the ASIN, title
-and primary image from an Amazon product URL and returns JSON. The Gear admin
-page has a **Fetch** button beside the URL field that fills the form from it.
-
-**Caveats, known up front:**
-
-- Amazon serves bot checks to datacenter and unfamiliar clients. The fetch is
-  best-effort; when it is blocked the form stays manually editable and nothing
-  breaks. Manual entry is always the fallback.
-- Gear links already open in a new tab with
-  `rel="noopener noreferrer sponsored"`.
-- **If these are Amazon Associates affiliate links:** the Associates operating
-  agreement requires product images to come from the Product Advertising API or
-  official widgets, not scraped and hotlinked. Fine for personal use; worth
-  knowing before monetizing. Moving to PA-API later is a contained change —
-  swap the fetch helper, the data model stays the same.
-
----
-
-## 8. Set Up Emulator page (`/setup-emulator`)
+## 7. Set Up Emulator page (`/setup-emulator`)
 
 A first-party page at `templates/setup_emulator.html`, linked first on the home
 page. Six numbered steps — the numbering is real sequence, not decoration.
@@ -443,7 +414,79 @@ Styles live at the end of `static/styles.css` under "Guide pages".
 
 ---
 
-## 9. Conventions
+## 8. Gear feature — REMOVED (2026-09-03)
+
+Removed on request. Deleted: the `Gear` model, `/gear`, `/gear/<id>/click`,
+every `/admin/gear*` route including the Amazon `fetch` endpoint, the
+product-link helpers (ASIN parsing, URL canonicalisation, scraping),
+`templates/gear.html`, `templates/admin_gear.html`, `seed_demo.py`, the gear
+CSS blocks, the admin import-bar styles, the Gear nav tab, and the six demo
+product images.
+
+**All of it is recoverable** — it is in the history at `6232606..fef0e04` on
+`working-changes`. Do not rebuild it from scratch if it comes back.
+
+**Watch out:** `setup_emulator()` was defined *between* the two gear routes, so
+the first removal pass took it out too and `/setup-emulator` 404'd. It has been
+restored. Any similar bulk removal should re-check the route list afterwards.
+
+The old `gear` table may still exist in a pre-existing local SQLite file. It is
+unused and harmless; delete `instance/linktree.db` for a clean slate.
+
+---
+
+## 9. Vercel deployment
+
+Full step-by-step is in `README.md`. The decisions behind it:
+
+| File | Role |
+| --- | --- |
+| `api/index.py` | Entrypoint. Re-exports the Flask app; Vercel's Python runtime picks up a module-level `app` as a WSGI callable. Inserts the repo root on `sys.path`, which is not there by default. |
+| `vercel.json` | Rewrites all paths to that function, bundles `templates/` and `static/` via `includeFiles`, sets cache and security headers. |
+| `.vercelignore` | Keeps venv, `instance/`, `.env`, `HANDOFF.md` and local tooling out of the bundle. |
+
+**Guards that fail loudly rather than silently misbehaving** (`VERCEL=1` is set
+by Vercel in all its environments):
+
+- **No `SECRET_KEY` on serverless → refuses to boot.** Each request may hit a
+  different instance; a per-process random key would sign every session
+  differently, so logins would appear to work and then randomly drop. That is
+  far worse to debug than a startup error.
+- **No `DATABASE_URL` on serverless → refuses to boot.** The filesystem is
+  read-only and discarded between invocations, so SQLite silently loses
+  everything.
+
+Local development is unaffected: it still falls back to a random key and
+SQLite, and self-bootstraps on first run.
+
+**Schema creation is manual on serverless.** `db.create_all()` at import would
+run reflection queries on every cold start. Run once, from your machine,
+pointed at the production database:
+
+```bash
+DATABASE_URL="postgresql://..." ADMIN_PASSWORD="..."   venv/Scripts/python.exe -m flask --app app init-db
+DATABASE_URL="postgresql://..." venv/Scripts/python.exe set_links.py
+```
+
+Other production settings: `pool_pre_ping` and `pool_recycle: 280` so a
+serverless pooler dropping a connection does not surface as a 500.
+
+**`psycopg2-binary` is deliberately unpinned from a Python-version marker.** It
+was `python_version < "3.14"` (so it would install on Vercel's 3.12 but skip on
+this machine's 3.14). 2.9.12 now ships 3.14 wheels, so the marker is gone — it
+would have silently dropped the Postgres driver if Vercel's default Python
+moved up.
+
+### Bug found during this work
+
+`init_db()` called `db.session.rollback()` in its `except` block from *outside*
+the `with app.app_context()` block, so any real failure was replaced by
+"Working outside of application context". Same masking pattern as the original
+`traceback` bug. The handler now sits inside the context.
+
+---
+
+## 10. Conventions
 
 - Mobile-first CSS; only add breakpoints at 600px and 900px.
 - Comments explain **why**, not what.
