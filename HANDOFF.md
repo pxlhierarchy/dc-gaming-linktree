@@ -6,7 +6,7 @@ lands, so we never re-litigate settled choices.
 - **Repo:** `pxlhierarchy/dc-gaming-linktree`
 - **Local path:** `C:\Users\chungus\Documents\dcgaminglinks`
 - **Working branch:** `working-changes` (branched from `main` @ `6232606`)
-- **Last updated:** 2026-09-04 (click analytics dashboard built; Vercel project still needed)
+- **Last updated:** 2026-09-04 (click analytics shipped to `main` @ `25bc2b4`; production schema migrated; Vercel project still needed)
 
 ---
 
@@ -397,9 +397,12 @@ Gear was removed on 2026-09-03 — see section 8.
 - [ ] **Rotate the admin password.** It was seeded as `admin` because no
       `ADMIN_PASSWORD` was supplied at the time. Use the new command:
       `ADMIN_PASSWORD='...' flask --app app set-admin-password` (min 12 chars).
-- [ ] **Rotate the Neon credential.** The `DATABASE_URL` was pasted into a chat
-      transcript, so treat it as disclosed and reset it in the Neon dashboard
-      once deployment is working.
+- [ ] **Rotate the Neon credential — now overdue.** The `DATABASE_URL` has been
+      pasted into a chat transcript **twice** (2026-09-03 and again
+      2026-09-04). Treat it as disclosed. Reset the password in the Neon
+      dashboard, then update `DATABASE_URL` in the Vercel project settings and
+      redeploy. It is a pooler URL for `neondb_owner`, i.e. full read/write on
+      everything.
 
 **Why the deploy could not be finished from here:** there is no MCP tool for
 managing environment variables or provisioning a database, and the Vercel CLI
@@ -413,10 +416,18 @@ a bug to debug.
       wired up; admin POSTs are currently unprotected.
 
 **Blocking the analytics dashboard in production**
-- [ ] **Run `init-db` against production before deploying.** The dashboard
-      needs the new `click_event` table. `db.create_all()` only *adds* tables,
-      so this is safe on the live database and leaves `user`, `link` and
-      `preferences` untouched. Without it `/admin/analytics` 500s.
+- [x] **`click_event` created in production (2026-09-04).** Verified: both
+      indexes present, FK to `link` with `ON DELETE CASCADE`, and `user` (1),
+      `link` (7) and `preferences` (1) untouched. `click_analytics()` was run
+      read-only against Neon at all three ranges — the queries execute clean on
+      Postgres and psycopg2 returns **naive** datetimes, which is the
+      assumption the whole date-range filter rests on.
+
+      **Gotcha found doing it:** off serverless, *importing* `app.py` runs
+      `init_db()` at module level, so any local script pointed at
+      `DATABASE_URL` silently migrates production. That is how the table got
+      created here — before the deliberate `init-db` was even run. Harmless
+      for an additive change; a real trap for anything that isn't.
 
 **Ideas — not committed**
 - [x] ~~Click-analytics view in admin~~ — built 2026-09-04, section 11.
