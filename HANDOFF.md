@@ -6,7 +6,7 @@ lands, so we never re-litigate settled choices.
 - **Repo:** `pxlhierarchy/dc-gaming-linktree`
 - **Local path:** `C:\Users\chungus\Documents\dcgaminglinks`
 - **Working branch:** `working-changes` (branched from `main` @ `6232606`)
-- **Last updated:** 2026-09-03 (pushed to GitHub main; Vercel deploy blocked on DB + env vars)
+- **Last updated:** 2026-09-03 (production DB provisioned and seeded; Vercel project still needed)
 
 ---
 
@@ -386,11 +386,18 @@ Gear was removed on 2026-09-03 — see section 8.
       could not be verified, and the project does not appear in
       `list_projects` for the team afterwards. **Do not create a second project
       with the same name** — inspect the dashboard first.
-- [ ] Attach Postgres (Storage → Neon). Blocking: the app raises on boot
-      without `DATABASE_URL`.
+- [x] **Postgres attached and seeded.** Neon, PostgreSQL 18.6. Tables `user`,
+      `link`, `preferences` created; admin user, 7 links (Donate highlighted)
+      and the DKC palette loaded. Verified by querying the database directly.
 - [ ] Set `SECRET_KEY` and `ADMIN_PASSWORD`. Blocking: the app raises on boot
       without `SECRET_KEY`.
-- [ ] Run `init-db` and `set_links.py` against the production `DATABASE_URL`.
+- [x] Ran `init-db` and `set_links.py` against production.
+- [ ] **Rotate the admin password.** It was seeded as `admin` because no
+      `ADMIN_PASSWORD` was supplied at the time. Use the new command:
+      `ADMIN_PASSWORD='...' flask --app app set-admin-password` (min 12 chars).
+- [ ] **Rotate the Neon credential.** The `DATABASE_URL` was pasted into a chat
+      transcript, so treat it as disclosed and reset it in the Neon dashboard
+      once deployment is working.
 
 **Why the deploy could not be finished from here:** there is no MCP tool for
 managing environment variables or provisioning a database, and the Vercel CLI

@@ -89,6 +89,13 @@ Then load your links into it:
 DATABASE_URL="postgresql://..." venv/Scripts/python.exe set_links.py
 ```
 
+`init-db` only sets a password when it *creates* the admin user. To rotate it
+on a database that already exists:
+
+```bash
+DATABASE_URL="postgresql://..." ADMIN_PASSWORD="a-real-password"   venv/Scripts/python.exe -m flask --app app set-admin-password
+```
+
 ### 6. Deploy
 
 Push to `main`, or hit **Deploy**. Check `/healthz` returns `{"status":"ok"}`,

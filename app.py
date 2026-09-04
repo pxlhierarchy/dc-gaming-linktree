@@ -427,6 +427,30 @@ def init_db():
             return False
 
 
+@app.cli.command('set-admin-password')
+def set_admin_password_command():
+    """Change the admin password. Reads it from ADMIN_PASSWORD.
+
+        ADMIN_PASSWORD='new-password' flask --app app set-admin-password
+
+    init-db only seeds a password when it creates the user, so this is the way
+    to rotate it on a database that already exists.
+    """
+    new_password = os.environ.get('ADMIN_PASSWORD')
+    if not new_password:
+        raise SystemExit("Set ADMIN_PASSWORD in the environment first.")
+    if len(new_password) < 12:
+        raise SystemExit("Use at least 12 characters for a live site.")
+
+    with app.app_context():
+        admin = User.query.filter_by(username='admin').first()
+        if not admin:
+            raise SystemExit("No admin user found - run init-db first.")
+        admin.password_hash = generate_password_hash(new_password)
+        db.session.commit()
+        print("Admin password updated.")
+
+
 @app.cli.command('init-db')
 def init_db_command():
     """Create tables and seed the admin user. Run once against a new database.
