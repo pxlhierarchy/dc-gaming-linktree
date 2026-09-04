@@ -171,7 +171,16 @@ h1, h2, h3, h4, h5, h6 {
         linear-gradient(to bottom, var(--scrim-top), var(--scrim-bottom)),
         url("images/wallpaper.jpg");
     background-repeat: no-repeat, no-repeat;
-    background-position: center, center;
+
+    /* Anchored left, not centred. The wallpaper is exactly 16:9, so any
+       viewport narrower than that - which includes every 16:10 laptop and any
+       browser window that is not maximised - makes `cover` crop horizontally.
+       The game's logo touches the left edge, so a centred crop slices straight
+       through the lettering: 17% into it at 16:10, a third at 1280x900.
+       Clipped text reads as a bug; a character out of frame just reads as a
+       different crop. So the crop is taken entirely off the right, where it
+       costs the Kongs instead of the wordmark. */
+    background-position: center, left center;
     background-size: cover, cover;
 }
 
@@ -186,6 +195,9 @@ h1, h2, h3, h4, h5, h6 {
         background-image:
             linear-gradient(to bottom, var(--scrim-top-sm), var(--scrim-bottom-sm)),
             url("images/background-mobile.jpg");
+        /* Back to centred: this image carries no lettering, and its centre is
+           DK's face, which is what should survive the crop. */
+        background-position: center, center;
     }
 }
 
