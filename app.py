@@ -4,7 +4,7 @@ from flask_login import (
     LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 )
 from werkzeug.security import generate_password_hash, check_password_hash
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, time, timezone
 import logging
 import os
 import traceback
@@ -22,6 +22,17 @@ logger = logging.getLogger(__name__)
 def utcnow():
     """Timezone-aware UTC timestamp (datetime.utcnow() is deprecated)."""
     return datetime.now(timezone.utc)
+
+
+def utcnow_naive():
+    """Naive UTC timestamp, for columns that get compared to a cutoff.
+
+    Aware and naive datetimes raise TypeError when compared, and SQLite and
+    Postgres do not agree on which kind they hand back for a plain DateTime
+    column. Analytics filters by date range constantly, so ClickEvent keeps
+    every value - stored and compared - naive UTC.
+    """
+    return datetime.now(timezone.utc).replace(tzinfo=None)
 
 
 # Vercel sets VERCEL=1 in every build and runtime environment.
@@ -121,6 +132,27 @@ class Link(db.Model):
         }
 
 
+class ClickEvent(db.Model):
+    """One row per link click, so clicks can be counted over a date range.
+
+    Link.clicks stays as the all-time counter rather than being derived from
+    these rows: it holds the totals from before this table existed, and it
+    keeps working if a single insert here is ever lost.
+    """
+    __tablename__ = 'click_event'
+
+    id = db.Column(db.Integer, primary_key=True)
+    link_id = db.Column(
+        db.Integer,
+        db.ForeignKey('link.id', ondelete='CASCADE'),
+        nullable=False, index=True,
+    )
+    # Naive UTC - see utcnow_naive(). Indexed because every dashboard query
+    # filters on it.
+    created_at = db.Column(db.DateTime, default=utcnow_naive,
+                           nullable=False, index=True)
+
+
 class Preferences(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
@@ -203,12 +235,42 @@ def setup_emulator():
     return render_template('setup_emulator.html')
 
 
+# Crawlers follow plain <a href> links, and a page that is nothing but links is
+# exactly what they walk. Counting them turns the dashboard into fiction. A
+# substring match will not catch every bot, but it catches the volume.
+BOT_UA_MARKERS = (
+    'bot', 'crawl', 'spider', 'slurp', 'facebookexternalhit', 'preview',
+    'fetch', 'monitor', 'headless', 'curl', 'wget', 'python-requests',
+    'scrapy', 'httpclient', 'okhttp', 'go-http-client', 'embed', 'validator',
+)
+
+
+def looks_automated(user_agent):
+    """True if this request should not be counted as a human click."""
+    ua = (user_agent or '').lower()
+    if not ua:
+        # Every real browser sends a User-Agent. An empty one is a script.
+        return True
+    return any(marker in ua for marker in BOT_UA_MARKERS)
+
+
 @app.route('/track/<int:id>')
 def track_click(id):
-    """Track link clicks and redirect to the target URL"""
+    """Count a link click and redirect to the target URL."""
     link = db.get_or_404(Link, id)
-    link.clicks = (link.clicks or 0) + 1
-    db.session.commit()
+
+    if not looks_automated(request.headers.get('User-Agent')):
+        try:
+            link.clicks = (link.clicks or 0) + 1
+            db.session.add(ClickEvent(link_id=link.id))
+            db.session.commit()
+        except Exception:
+            # Sending the visitor onward matters more than the statistic.
+            # A failed write must never surface as a 500 on a working link.
+            logger.error("Could not record click for link %s: %s",
+                         id, traceback.format_exc())
+            db.session.rollback()
+
     return redirect(link.url)
 
 
@@ -336,6 +398,10 @@ def delete_link(id):
         if link.user_id != current_user.id:
             return jsonify({'success': False, 'message': 'Unauthorized'}), 403
 
+        # SQLite does not enforce ON DELETE CASCADE unless PRAGMA
+        # foreign_keys is on, so clear the click history explicitly. On
+        # Postgres this is a no-op the constraint would have done anyway.
+        ClickEvent.query.filter_by(link_id=link.id).delete(synchronize_session=False)
         db.session.delete(link)
         db.session.commit()
         return jsonify({'success': True})
@@ -361,6 +427,153 @@ def reorder_links():
         logger.error("Error reordering links: %s", traceback.format_exc())
         db.session.rollback()
         return jsonify({'success': False, 'message': str(e)}), 500
+
+
+# ---- Analytics -----------------------------------------------------------
+# Offered ranges, in days. Keep this short - a range picker with eight options
+# is a menu, not a control.
+CLICK_RANGES = (7, 30, 90)
+DEFAULT_CLICK_RANGE = 30
+
+
+def click_analytics(user_id, days):
+    """Everything the analytics dashboard renders, for one owner and range.
+
+    Days are bucketed in Python rather than with SQL date functions:
+    strftime(), date_trunc() and CAST-to-date differ across SQLite and
+    Postgres, and this site's click volume makes the round trip free.
+    """
+    links = (Link.query.filter_by(user_id=user_id)
+             .order_by(Link.position, Link.created_at.desc()).all())
+    link_ids = [link.id for link in links]
+
+    end_day = utcnow_naive().date()
+    start_day = end_day - timedelta(days=days - 1)
+    # Midnight UTC on the first day, so the range is whole days, not "N * 24h
+    # ago" - a partial first day makes the leftmost bar look like a slump.
+    cutoff = datetime.combine(start_day, time.min)
+
+    events = []
+    last_seen = {}
+    tracked_total = 0
+    tracking_since = None
+
+    if link_ids:
+        events = (db.session.query(ClickEvent.link_id, ClickEvent.created_at)
+                  .filter(ClickEvent.link_id.in_(link_ids),
+                          ClickEvent.created_at >= cutoff)
+                  .all())
+
+        # All-time, so the table can show when each link was last used and the
+        # page can say honestly how far back per-day history actually goes.
+        for link_id, last, count in (
+            db.session.query(ClickEvent.link_id,
+                             db.func.max(ClickEvent.created_at),
+                             db.func.count(ClickEvent.id))
+            .filter(ClickEvent.link_id.in_(link_ids))
+            .group_by(ClickEvent.link_id).all()
+        ):
+            last_seen[link_id] = last
+            tracked_total += count
+
+        tracking_since = (db.session.query(db.func.min(ClickEvent.created_at))
+                          .filter(ClickEvent.link_id.in_(link_ids)).scalar())
+
+    # Zero-filled day buckets: a day with no clicks is a real zero and has to
+    # occupy width on the chart, or the time axis lies.
+    buckets = {start_day + timedelta(days=i): 0 for i in range(days)}
+    per_link = {link_id: 0 for link_id in link_ids}
+    for link_id, created_at in events:
+        day = created_at.date()
+        # Both counters move together, so the tiles, the chart and the table
+        # can never disagree - a row timestamped in the future by clock skew
+        # is dropped from all three rather than from only one.
+        if day in buckets:
+            buckets[day] += 1
+            per_link[link_id] = per_link.get(link_id, 0) + 1
+
+    series = [
+        {'date': day.isoformat(),
+         # Built by hand rather than with strftime: the no-pad day directive
+         # is %-d on Linux and %#d on Windows, and this runs on both.
+         'label': '{} {}'.format(day.strftime('%b'), day.day),
+         'clicks': count}
+        for day, count in sorted(buckets.items())
+    ]
+
+    total_range = sum(per_link.values())
+    rows = [{
+        'id': link.id,
+        'title': link.title,
+        'url': link.url,
+        'icon': link.icon or 'fas fa-link',
+        'range_clicks': per_link.get(link.id, 0),
+        'all_time': link.clicks or 0,
+        # Share of the selected range, so the bar and the number agree.
+        'share': round(per_link.get(link.id, 0) * 100.0 / total_range, 1) if total_range else 0.0,
+        'last_click': last_seen.get(link.id),
+    } for link in links]
+    rows.sort(key=lambda row: (-row['range_clicks'], -row['all_time'], row['title'].lower()))
+
+    busiest = max(series, key=lambda point: point['clicks']) if series else None
+    if busiest and not busiest['clicks']:
+        busiest = None
+
+    return {
+        'days': days,
+        'ranges': CLICK_RANGES,
+        'series': series,
+        'rows': rows,
+        'total_range': total_range,
+        'total_all_time': sum(link.clicks or 0 for link in links),
+        'daily_average': round(total_range / days, 1) if days else 0.0,
+        'busiest': busiest,
+        'top_link': next((row for row in rows if row['range_clicks']), None),
+        'tracking_since': tracking_since,
+        'tracked_total': tracked_total,
+        'start_day': start_day,
+        'end_day': end_day,
+    }
+
+
+def _requested_range():
+    """Read ?days= and clamp it to an offered range."""
+    try:
+        days = int(request.args.get('days', DEFAULT_CLICK_RANGE))
+    except (TypeError, ValueError):
+        return DEFAULT_CLICK_RANGE
+    return days if days in CLICK_RANGES else DEFAULT_CLICK_RANGE
+
+
+@app.route('/admin/analytics')
+@login_required
+def admin_analytics():
+    """Click dashboard: totals, clicks per day, and a per-link breakdown."""
+    return render_template('admin_analytics.html',
+                           stats=click_analytics(current_user.id, _requested_range()))
+
+
+@app.route('/admin/analytics.json')
+@login_required
+def admin_analytics_json():
+    """The same figures as JSON, for exporting or checking a number by hand."""
+    stats = click_analytics(current_user.id, _requested_range())
+    return jsonify({
+        'days': stats['days'],
+        'from': stats['start_day'].isoformat(),
+        'to': stats['end_day'].isoformat(),
+        'total_in_range': stats['total_range'],
+        'total_all_time': stats['total_all_time'],
+        'per_day': stats['series'],
+        'links': [{
+            'id': row['id'],
+            'title': row['title'],
+            'url': row['url'],
+            'clicks_in_range': row['range_clicks'],
+            'clicks_all_time': row['all_time'],
+            'last_click': row['last_click'].isoformat() + 'Z' if row['last_click'] else None,
+        } for row in stats['rows']],
+    })
 
 
 # ---- Preferences ---------------------------------------------------------

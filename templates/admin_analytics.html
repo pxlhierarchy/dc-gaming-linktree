@@ -1,0 +1,247 @@
+{% extends "admin_base.html" %}
+
+{% block title %}Analytics - DC Gaming Admin{% endblock %}
+
+{% block content %}
+<div class="analytics-head">
+    <div>
+        <h1 class="mb-1">Analytics</h1>
+        <p class="text-secondary mb-0">
+            {{ stats.start_day.strftime('%d %b %Y') }} &ndash; {{ stats.end_day.strftime('%d %b %Y') }}
+            <span class="text-nowrap">(UTC)</span>
+        </p>
+    </div>
+
+    {# A plain link group, not JS: the range is a URL, so it survives a
+       refresh and can be bookmarked. #}
+    <div class="range-picker" role="group" aria-label="Date range">
+        {% for days in stats.ranges %}
+        <a class="range-btn {% if days == stats.days %}is-active{% endif %}"
+           href="{{ url_for('admin_analytics', days=days) }}"
+           {% if days == stats.days %}aria-current="true"{% endif %}>{{ days }} days</a>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- ============================ Stat tiles ============================ -->
+<div class="stat-row">
+    <div class="stat-tile">
+        <p class="stat-label">Clicks in {{ stats.days }} days</p>
+        <p class="stat-value">{{ '{:,}'.format(stats.total_range) }}</p>
+        <p class="stat-note">{{ stats.daily_average }} a day on average</p>
+    </div>
+    <div class="stat-tile">
+        <p class="stat-label">Clicks all time</p>
+        <p class="stat-value">{{ '{:,}'.format(stats.total_all_time) }}</p>
+        <p class="stat-note">Across {{ stats.rows|length }} link{{ '' if stats.rows|length == 1 else 's' }}</p>
+    </div>
+    <div class="stat-tile">
+        <p class="stat-label">Busiest day</p>
+        {% if stats.busiest %}
+        <p class="stat-value">{{ stats.busiest.clicks }}</p>
+        <p class="stat-note">{{ stats.busiest.label }}</p>
+        {% else %}
+        <p class="stat-value stat-value--empty">&mdash;</p>
+        <p class="stat-note">No clicks in this range</p>
+        {% endif %}
+    </div>
+    <div class="stat-tile">
+        <p class="stat-label">Top link</p>
+        {% if stats.top_link %}
+        <p class="stat-value stat-value--sm">{{ stats.top_link.title }}</p>
+        <p class="stat-note">{{ stats.top_link.range_clicks }} click{{ '' if stats.top_link.range_clicks == 1 else 's' }}
+            &middot; {{ stats.top_link.share }}% of the range</p>
+        {% else %}
+        <p class="stat-value stat-value--empty">&mdash;</p>
+        <p class="stat-note">No clicks in this range</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- ============================== Chart =============================== -->
+<div class="card mb-4">
+    <div class="card-header d-flex flex-wrap gap-2 justify-content-between align-items-center">
+        <h5 class="mb-0">Clicks per day</h5>
+        <span class="text-secondary small">All links combined</span>
+    </div>
+    <div class="card-body">
+        {% if stats.total_range %}
+        <div class="chart-frame">
+            <canvas id="clicksChart" role="img"
+                    aria-label="Clicks per day over the last {{ stats.days }} days. The per-link table below lists the same clicks by destination."></canvas>
+        </div>
+        {% else %}
+        <p class="text-secondary mb-0">
+            No clicks recorded in this range yet.
+            {% if not stats.tracked_total %}
+            Per-day tracking starts from the first click after this dashboard went live.
+            {% endif %}
+        </p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- ============================== Table ============================== -->
+<div class="card">
+    <div class="card-header d-flex flex-wrap gap-2 justify-content-between align-items-center">
+        <h5 class="mb-0">Clicks by link</h5>
+        <a class="small" href="{{ url_for('admin_analytics_json', days=stats.days) }}"
+           target="_blank" rel="noopener">Raw data (JSON)</a>
+    </div>
+    <div class="card-body">
+        {% if stats.rows %}
+        <div class="table-responsive">
+            <table class="table table-stack align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th scope="col">Link</th>
+                        <th scope="col">Last {{ stats.days }} days</th>
+                        <th scope="col">Share</th>
+                        <th scope="col">All time</th>
+                        <th scope="col">Last click</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in stats.rows %}
+                    <tr>
+                        {# One wrapper element, deliberately: below 768px the
+                           cell becomes a two-column grid, and a bare icon and
+                           text node would each be placed as their own grid
+                           item and break across rows. #}
+                        <td data-label="Link">
+                            <div class="link-cell">
+                                <span class="link-cell-title">
+                                    <i class="{{ row.icon }}" aria-hidden="true"></i>
+                                    {{ row.title }}
+                                </span>
+                                <span class="cell-url" title="{{ row.url }}">{{ row.url }}</span>
+                            </div>
+                        </td>
+                        <td data-label="Last {{ stats.days }}d" class="num">{{ row.range_clicks }}</td>
+                        <td data-label="Share">
+                            {# The bar and the number carry the same value; the
+                               bar is there to make the ranking scannable. #}
+                            <div class="share">
+                                <span class="share-track">
+                                    <span class="share-fill" style="width: {{ row.share }}%"></span>
+                                </span>
+                                <span class="share-num">{{ row.share }}%</span>
+                            </div>
+                        </td>
+                        <td data-label="All time" class="num">{{ row.all_time }}</td>
+                        <td data-label="Last click">
+                            {% if row.last_click %}
+                            <span class="text-secondary">{{ row.last_click.strftime('%d %b %Y, %H:%M') }}</span>
+                            {% else %}
+                            <span class="text-secondary">&mdash;</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-secondary mb-0">No links yet. Add one on the Links tab.</p>
+        {% endif %}
+    </div>
+</div>
+
+<p class="analytics-footnote">
+    All times are UTC. Clicks from known bots and crawlers are not counted.
+    {% if stats.tracking_since %}
+    Per-day history begins {{ stats.tracking_since.strftime('%d %b %Y') }}; the
+    all-time column also includes clicks counted before then.
+    {% else %}
+    The all-time column includes clicks counted before per-day history was
+    added, which is why it can be ahead of the range totals.
+    {% endif %}
+</p>
+{% endblock %}
+
+{% block scripts %}
+{% if stats.total_range %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script id="clicksData" type="application/json">{{ stats.series | tojson }}</script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var points = JSON.parse(document.getElementById('clicksData').textContent);
+    var css = getComputedStyle(document.documentElement);
+    var accent = css.getPropertyValue('--accent').trim() || '#F5B921';
+    var ink = css.getPropertyValue('--text').trim() || '#F5F1E3';
+    var muted = css.getPropertyValue('--text-muted').trim() || '#A7B79C';
+    var grid = css.getPropertyValue('--border').trim() || '#35492E';
+    var surface = css.getPropertyValue('--surface').trim() || '#18271A';
+
+    new Chart(document.getElementById('clicksChart'), {
+        type: 'bar',
+        data: {
+            labels: points.map(function (p) { return p.label; }),
+            datasets: [{
+                label: 'Clicks',
+                data: points.map(function (p) { return p.clicks; }),
+                backgroundColor: accent,
+                hoverBackgroundColor: '#ffc94a',
+                borderRadius: 4,
+                // Round the top of the bar only - the base sits on the axis.
+                borderSkipped: 'bottom',
+                // Thin marks with real air between them. A saturated fill at
+                // full category width reads as a wall of yellow rather than as
+                // data, and a short range would render as a few huge slabs.
+                maxBarThickness: 20,
+                categoryPercentage: 0.9,
+                barPercentage: 0.7
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: { duration: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 400 },
+            // One series, so no legend: the card header names it.
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: surface,
+                    borderColor: grid,
+                    borderWidth: 1,
+                    titleColor: ink,
+                    bodyColor: ink,
+                    padding: 10,
+                    displayColors: false,
+                    callbacks: {
+                        label: function (ctx) {
+                            var n = ctx.parsed.y;
+                            return n + (n === 1 ? ' click' : ' clicks');
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    grid: { display: false },
+                    border: { color: grid },
+                    ticks: {
+                        color: muted,
+                        maxRotation: 0,
+                        autoSkipPadding: 16
+                    }
+                },
+                y: {
+                    beginAtZero: true,
+                    grid: { color: grid, drawTicks: false },
+                    border: { display: false },
+                    ticks: {
+                        color: muted,
+                        padding: 8,
+                        // Clicks are whole things; a "2.5 clicks" gridline is
+                        // nonsense on a low-volume day.
+                        precision: 0
+                    }
+                }
+            }
+        }
+    });
+});
+</script>
+{% endif %}
+{% endblock %}

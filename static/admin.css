@@ -346,3 +346,165 @@ textarea.form-control { min-height: 96px; }
         transition-duration: 0.01ms !important;
     }
 }
+
+/* --------------------------------------------------------------------------
+   Analytics dashboard
+   -------------------------------------------------------------------------- */
+.analytics-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+/* Range picker: segmented control, links not buttons - the range lives in the
+   URL so it survives a refresh. */
+.range-picker {
+    display: flex;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.range-btn {
+    padding: 0 0.9rem;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 0.95rem;
+    white-space: nowrap;
+    background-color: var(--surface);
+    border-right: 1px solid var(--border);
+}
+
+.range-btn:last-child { border-right: 0; }
+.range-btn:hover      { color: var(--text); }
+
+.range-btn.is-active {
+    background-color: var(--accent);
+    color: var(--accent-ink);
+    font-weight: 600;
+}
+
+/* Stat tiles. The number is the chart here - four headline figures that would
+   each be a one-bar bar chart otherwise. */
+.stat-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.stat-tile {
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.1rem 1.2rem;
+}
+
+.stat-label {
+    margin: 0 0 0.35rem;
+    font-size: 0.82rem;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+}
+
+.stat-value {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: clamp(1.6rem, 4vw, 2.1rem);
+    line-height: 1.1;
+    color: var(--accent);
+}
+
+/* A link title is words, not a figure - it needs to wrap and cannot carry the
+   full display size. */
+.stat-value--sm {
+    font-size: clamp(1.05rem, 2.6vw, 1.3rem);
+    overflow-wrap: anywhere;
+}
+
+.stat-value--empty { color: var(--text-muted); }
+
+.stat-note {
+    margin: 0.4rem 0 0;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+/* Fixed height so the canvas has something to be responsive against - Chart.js
+   with maintainAspectRatio:false collapses to 0 in an auto-height parent. */
+.chart-frame {
+    position: relative;
+    height: 300px;
+}
+
+@media (min-width: 900px) {
+    .chart-frame { height: 340px; }
+}
+
+.table .num {
+    font-variant-numeric: tabular-nums;
+}
+
+/* Share bar: same value as the number beside it, there to make the ranking
+   scannable rather than to add information. */
+.share {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    min-width: 120px;
+}
+
+.share-track {
+    flex: 1;
+    height: 8px;
+    border-radius: 4px;
+    background-color: rgba(245, 185, 33, 0.14);
+    overflow: hidden;
+}
+
+.share-fill {
+    display: block;
+    height: 100%;
+    border-radius: 4px;
+    background-color: var(--accent);
+}
+
+.share-num {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.analytics-footnote {
+    margin-top: 1.25rem;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    max-width: 60ch;
+}
+
+/* Bootstrap's default link blue has no place in this palette. */
+.card-header a,
+.analytics-footnote a {
+    color: var(--accent);
+    text-decoration-color: rgba(245, 185, 33, 0.45);
+}
+
+.card-header a:hover,
+.analytics-footnote a:hover { color: #ffc94a; }
+
+/* The analytics Link cell keeps title and URL in one wrapper so the stacked
+   mobile grid sees a single value item - see the comment in the template. */
+.link-cell-title { display: block; }
+.link-cell .cell-url { display: block; }
+
+/* A grid track of 1fr has an automatic minimum size, so a long URL would push
+   the value column past the card edge instead of being ellipsised. */
+.link-cell { min-width: 0; }

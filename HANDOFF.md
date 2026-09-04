@@ -6,7 +6,7 @@ lands, so we never re-litigate settled choices.
 - **Repo:** `pxlhierarchy/dc-gaming-linktree`
 - **Local path:** `C:\Users\chungus\Documents\dcgaminglinks`
 - **Working branch:** `working-changes` (branched from `main` @ `6232606`)
-- **Last updated:** 2026-09-03 (production DB provisioned and seeded; Vercel project still needed)
+- **Last updated:** 2026-09-04 (click analytics dashboard built; Vercel project still needed)
 
 ---
 
@@ -317,6 +317,8 @@ it now sits over artwork rather than a flat ground.
 | `/admin` | required | Links + Preferences tabs |
 | `/admin/links/add\|edit\|delete\|reorder` | required | Link CRUD |
 | `/admin/preferences` | required | GET / POST site theme |
+| `/admin/analytics` | required | Click dashboard (see section 11) |
+| `/admin/analytics.json` | required | The same figures as JSON |
 
 ### Data
 
@@ -410,8 +412,14 @@ a bug to debug.
 - [ ] CSRF protection. Flask-WTF was in the original requirements but never
       wired up; admin POSTs are currently unprotected.
 
+**Blocking the analytics dashboard in production**
+- [ ] **Run `init-db` against production before deploying.** The dashboard
+      needs the new `click_event` table. `db.create_all()` only *adds* tables,
+      so this is safe on the live database and leaves `user`, `link` and
+      `preferences` untouched. Without it `/admin/analytics` 500s.
+
 **Ideas — not committed**
-- [ ] Click-analytics view in admin (data is already collected).
+- [x] ~~Click-analytics view in admin~~ — built 2026-09-04, section 11.
 - [ ] Scheduled/expiring links for drops and events.
 - [ ] The `.banner` CSS component exists but no template uses it — could become
       an announcement bar driven by Preferences.
@@ -545,3 +553,85 @@ the `with app.app_context()` block, so any real failure was replaced by
 - Admin fetch calls go through `Admin.postJSON` for consistent error handling.
 - Every user-facing string in templates, not hardcoded in Python.
 - Nothing is committed or pushed unless explicitly asked. `main` is untouched.
+
+---
+
+## 11. Click analytics (2026-09-04)
+
+`/admin/analytics`, behind the existing login, linked from the admin nav.
+
+### Why a new table and not just `Link.clicks`
+
+`Link.clicks` is a single lifetime counter. It can say a link has 400 clicks; it
+cannot say whether those arrived yesterday or over a year, which is the actual
+question. `ClickEvent` stores one timestamped row per click, so any date range
+can be counted after the fact.
+
+**`Link.clicks` was kept, not replaced.** It holds the totals from before this
+table existed, and it keeps `/track/` meaningful if an event insert is ever
+lost. The two are shown side by side and the page says in a footnote why
+all-time can be ahead of the range.
+
+### Decisions
+
+- **Naive UTC in `ClickEvent.created_at`.** Aware and naive datetimes raise
+  `TypeError` when compared, and SQLite and Postgres disagree about which kind
+  a plain `DateTime` column hands back. Every value in that column and every
+  cutoff compared against it is naive UTC (`utcnow_naive()`). The rest of the
+  app still uses the aware `utcnow()`; only this column needed the guarantee,
+  because only this column gets range-filtered.
+- **Days are bucketed in Python, not SQL.** `strftime()`, `date_trunc()` and
+  `CAST(... AS date)` all differ between SQLite and Postgres. At this site's
+  volume the round trip is free, and the code works unchanged on both.
+- **Zero-filled buckets.** A day with no clicks is a real zero and occupies
+  width on the chart. Without this the time axis silently lies.
+- **The range is a URL (`?days=`), not JS state**, so it survives a refresh and
+  can be bookmarked. Anything outside `CLICK_RANGES` falls back to 30.
+- **Bots are redirected but not counted.** A page that is nothing but links is
+  exactly what crawlers walk, and counting them makes the dashboard fiction.
+  `looks_automated()` does a substring match on the User-Agent, and treats an
+  absent User-Agent as automated — every real browser sends one. Verified
+  against five real desktop and mobile browser strings, plus Googlebot, curl,
+  Discordbot and python-requests.
+- **A failed write cannot 500 a working link.** The insert in `/track/` is
+  wrapped: sending the visitor onward matters more than the statistic.
+- **Deleting a link deletes its events explicitly.** The FK carries
+  `ON DELETE CASCADE`, but SQLite does not enforce foreign keys unless
+  `PRAGMA foreign_keys` is on, so the route clears them itself.
+
+### Chart
+
+Chart.js 4.4.3 from jsDelivr, matching the CDN pattern `admin_base.html`
+already uses for Bootstrap and Font Awesome. One series, so no legend — the
+card header names it. Bars are capped at 20px with real gaps; at full category
+width a saturated accent fill reads as a wall of yellow rather than as data.
+Colours are read from the CSS custom properties at runtime, so changing the
+palette in `admin.css` moves the chart with it.
+
+### Mobile
+
+The table reuses the existing `.table-stack` + `data-label` pattern. Two
+things that pattern does *not* handle on its own, both fixed here:
+
+- The stacked cell is a two-column grid, so a bare `<i>` and a text node are
+  placed as **separate grid items** and break across rows. The Link cell wraps
+  its icon, title and URL in one `.link-cell` element.
+- A `1fr` track has an automatic minimum size, so a long URL pushed the value
+  column past the card edge instead of ellipsising. `.link-cell` carries
+  `min-width: 0`.
+
+**The Links table in `admin.html` still has the first of those two bugs** (its
+Link cell has a bare icon plus a text node). Left alone as out of scope for
+this change; the fix is the same wrapper.
+
+### Not built
+
+- Traffic sources. `request.referrer` on `/track/` is almost always this site's
+  own home page, because that is where the click came from — same-origin. The
+  useful referrer is where the visitor came from to reach the site at all,
+  which means recording page views and sessions, not clicks. Deliberately out
+  of scope rather than shipped as a misleading panel.
+- Unique visitors. Needs a visitor identifier, which is a privacy decision, not
+  a technical one.
+- An "all time" chart range. The tiles and the table already carry the all-time
+  numbers; a chart across an unbounded window needs variable bucket widths.

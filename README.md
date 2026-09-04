@@ -1,7 +1,7 @@
 # DC Gaming Linktree
 
 A small Flask link-in-bio site: link list with click tracking, an admin
-dashboard, and a "Set Up Emulator" guide page.
+dashboard with click analytics, and a "Set Up Emulator" guide page.
 
 ---
 
@@ -89,6 +89,11 @@ Then load your links into it:
 DATABASE_URL="postgresql://..." venv/Scripts/python.exe set_links.py
 ```
 
+Re-run `init-db` after any release that adds a table. It is safe on a live
+database: `db.create_all()` creates missing tables and leaves existing ones
+alone. The click analytics release added `click_event`, so run it once against
+production before deploying that version, or `/admin/analytics` will 500.
+
 `init-db` only sets a password when it *creates* the admin user. To rotate it
 on a database that already exists:
 
@@ -129,5 +134,14 @@ HANDOFF.md              Working doc: decisions, fixes, open items
 
 ## Admin
 
-`/admin/login`, username `admin`, password from `ADMIN_PASSWORD`. The dashboard
-manages links and site preferences (title, description, colours).
+`/admin/login`, username `admin`, password from `ADMIN_PASSWORD`.
+
+| Page | What it does |
+| --- | --- |
+| `/admin` | Add, edit, delete and reorder links; site preferences |
+| `/admin/analytics` | Clicks per day, per-link totals and share, over 7 / 30 / 90 days |
+| `/admin/analytics.json` | The same figures as JSON, for export |
+
+Clicks are counted on `/track/<id>`, which every link on the home page goes
+through. Requests from known bots and crawlers are redirected but not counted.
+All timestamps are UTC.

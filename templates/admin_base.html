@@ -36,6 +36,10 @@
                            href="{{ url_for('admin_dashboard') }}">Links</a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'admin_analytics' %}active{% endif %}"
+                           href="{{ url_for('admin_analytics') }}">Analytics</a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('index') }}" target="_blank" rel="noopener">
                             View site <i class="fas fa-arrow-up-right-from-square fa-xs"></i>
                         </a>
