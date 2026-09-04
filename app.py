@@ -62,6 +62,12 @@ app.config['SQLALCHEMY_DATABASE_URI'] = database_url or 'sqlite:///linktree.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max request size
 
+# Flask serves /static itself here, and its default is Cache-Control: no-cache,
+# which overrode the header set in vercel.json - every visit re-downloaded the
+# ~250KB of artwork. One day, with the CDN allowed to serve stale while
+# revalidating. Bump this if an asset ever needs to change faster than that.
+app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 86400
+
 # Recycle connections before a serverless pooler drops them underneath us.
 app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
     'pool_pre_ping': True,
