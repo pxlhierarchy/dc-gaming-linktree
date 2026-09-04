@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-    <meta name="theme-color" content="{{ preferences.background_color if preferences else '#0F1A12' }}">
+    <meta name="theme-color" content="{{ preferences.background_color if preferences else '#15110C' }}">
     <meta name="description" content="{% block description %}{{ preferences.site_description if preferences else 'Donkey Kong Country speedrunning and other shenanigans' }}{% endblock %}">
 
     <title>{% block title %}{{ preferences.site_title if preferences else 'DC Gaming' }}{% endblock %}</title>
@@ -27,9 +27,9 @@
     {% if preferences %}
     <style>
         :root {
-            --bg:     {{ preferences.background_color or '#0F1A12' }};
+            --bg:     {{ preferences.background_color or '#15110C' }};
             --accent: {{ preferences.accent_color or '#F5B921' }};
-            --text:   {{ preferences.text_color or '#F5F1E3' }};
+            --text:   {{ preferences.text_color or '#F7F1E4' }};
         }
     </style>
     {% endif %}

@@ -159,9 +159,9 @@ class Preferences(db.Model):
     site_title = db.Column(db.String(100), default='DC Gaming')
     site_description = db.Column(db.String(200), default='Your gaming destination')
     profile_image = db.Column(db.String(500))
-    background_color = db.Column(db.String(7), default='#0F1A12')
+    background_color = db.Column(db.String(7), default='#15110C')
     accent_color = db.Column(db.String(7), default='#F5B921')
-    text_color = db.Column(db.String(7), default='#F5F1E3')
+    text_color = db.Column(db.String(7), default='#F7F1E4')
     created_at = db.Column(db.DateTime, default=utcnow)
     updated_at = db.Column(db.DateTime, default=utcnow, onupdate=utcnow)
 
@@ -187,10 +187,10 @@ if MISSING_CONFIG:
         return (
             '<!doctype html><meta charset="utf-8">'
             '<title>Configuration needed</title>'
-            '<style>body{font-family:system-ui,sans-serif;background:#0F1A12;'
-            'color:#F5F1E3;margin:0;display:grid;place-items:center;min-height:100vh}'
+            '<style>body{font-family:system-ui,sans-serif;background:#15110C;'
+            'color:#F7F1E4;margin:0;display:grid;place-items:center;min-height:100vh}'
             'main{max-width:34rem;padding:2rem}h1{color:#F5B921}'
-            'code{background:#18271A;padding:.15em .4em;border-radius:4px}</style>'
+            'code{background:#221C14;padding:.15em .4em;border-radius:4px}</style>'
             '<main><h1>Configuration needed</h1>'
             f'<p>This deployment is missing required environment variables:</p><ul>{names}</ul>'
             '<p>Set them in the Vercel project under '
@@ -703,6 +703,29 @@ def set_admin_password_command():
         admin.password_hash = generate_password_hash(new_password)
         db.session.commit()
         print("Admin password updated.")
+
+
+@app.cli.command('sync-theme')
+def sync_theme_command():
+    """Reset the stored theme colours to the model defaults.
+
+        flask --app app sync-theme
+
+    Preferences overrides --bg, --accent and --text at render time, but the
+    other nine tokens live in styles.css. After a palette change the stored row
+    still holds the old values and fights the stylesheet - a warm site with a
+    green background. This writes the defaults back so the two agree.
+    """
+    with app.app_context():
+        prefs = Preferences.query.order_by(Preferences.id).first()
+        if not prefs:
+            raise SystemExit("No preferences row found - run init-db first.")
+        for column in ('background_color', 'accent_color', 'text_color'):
+            default = getattr(Preferences, column).default.arg
+            print('  %-18s %s -> %s' % (column, getattr(prefs, column), default))
+            setattr(prefs, column, default)
+        db.session.commit()
+        print("Theme colours synced to the stylesheet defaults.")
 
 
 @app.cli.command('init-db')

@@ -6,7 +6,7 @@ lands, so we never re-litigate settled choices.
 - **Repo:** `pxlhierarchy/dc-gaming-linktree`
 - **Local path:** `C:\Users\chungus\Documents\dcgaminglinks`
 - **Working branch:** `working-changes` (branched from `main` @ `6232606`)
-- **Last updated:** 2026-09-04 (click analytics shipped to `main` @ `25bc2b4`; production schema migrated; Vercel project still needed)
+- **Last updated:** 2026-09-04 (palette moved from jungle green to sunset warm-charcoal; click analytics live; site deployed at dcgaming.space)
 
 ---
 
@@ -125,26 +125,52 @@ Body size went 18px → 17px (Rubik has a larger x-height than VT323, so it
 reads bigger at a smaller number). Display sizes went **up** substantially —
 Press Start 2P had to be tiny to fit; Titan One doesn't.
 
-### Palette — DKC jungle, not generic dark mode
+### Palette — DKC sunset (2026-09-04; replaced the jungle green)
+
+**The green was replaced on the owner's call, and the reason is measurable
+rather than a matter of taste.** Sampling both background images by horizontal
+band: `background-mobile.jpg` is amber right through — hue 38-52 in *every*
+band, 45-73% saturation — and `wallpaper.jpg` runs magenta (hue 340) at the top
+into orange (hue 29) across its bright middle. There is effectively no green in
+the artwork except the bottom band of the desktop wallpaper at 4% lightness.
+The old ground *and the old scrim* were green, so a green veil sat over amber
+art and turned it olive. Same effect as the one that killed the wallpaper
+option for the YouTube banner.
+
+Every alternative measured **better** than the old palette on contrast (text on
+surface, accent on surface, accent over the scrimmed art), so this cost nothing
+in legibility. Two others were rendered and rejected: twilight violet (more
+distinctive, less safe) and neutral slate (clean but characterless).
 
 | Token | Value | Role |
 | --- | --- | --- |
-| `--bg` | `#0F1A12` | Deep night-jungle green. Green-biased, not flat grey. |
-| `--surface` | `#18271A` | Cards |
-| `--border` | `#35492E` | 3px borders |
+| `--bg` | `#15110C` | Warm near-black. Warm-biased, not flat grey. |
+| `--surface` | `#221C14` | Cards |
+| `--border` | `#3E3325` | 3px borders |
 | `--accent` | `#F5B921` | **Banana yellow** — headings, icons, buttons |
 | `--accent-ink` | `#2A1D02` | Dark text that sits *on* yellow |
 | `--hot` | `#D93B2B` | DK-tie red, used sparingly (warnings only) |
 | `--wood` | `#8A5325` | Barrel wood, used on the ROM callout shadow |
 | `--vine` | `#6FA83C` | Prices |
-| `--text` | `#F5F1E3` | Warm off-white, not clinical |
+| `--text` | `#F7F1E4` | Warm off-white, not clinical |
+| `--text-muted` | `#B5A88F` | Warm grey; was the green-grey `#A7B79C` |
 
 **Yellow replaced red as the primary accent** because it has far better
-contrast on dark green — a legibility decision as much as a thematic one. Red
-is now reserved for one thing at a time.
+contrast on the dark ground — a legibility decision as much as a thematic one.
+Red is now reserved for one thing at a time. The yellow survived the palette
+change untouched: it reads better on warm charcoal than it did on green.
 
-These values are stored in the `Preferences` row *and* as model defaults, so a
-reset doesn't reintroduce the old red.
+The scrim moved with it, from `rgba(12, 20, 14, ...)` to `rgba(20, 14, 8, ...)`
+at all four stops. **The scrim is the single biggest lever on how the site
+feels** — it covers the whole viewport — so it is the first thing to change if
+the mood is ever wrong again.
+
+**`Preferences` overrides only `--bg`, `--accent` and `--text`; the other nine
+tokens live in `styles.css`.** So the admin colour pickers cannot re-theme the
+site on their own — set a warm background there and you get warm cards inside
+green borders. After any palette change the stored row still holds the old
+values and fights the stylesheet, which is what `flask --app app sync-theme`
+is for. Run it against production, or set the two fields in the admin form.
 
 ### 90s devices
 

@@ -6,20 +6,25 @@
    Replaced Press Start 2P / VT323, which carried the era but were hard to
    read at any real length.
 
-   Palette: DKC jungle - night-jungle greens, banana yellow, DK-tie red,
-   barrel wood.
+   Palette: DKC sunset - warm charcoal, banana yellow, DK-tie red, barrel
+   wood. Measured, not chosen by eye: background-mobile.jpg is amber right
+   through (hue 38-52 in every band) and wallpaper.jpg runs magenta at the top
+   into orange through its bright middle. The old green ground and green scrim
+   sat on top of that and turned it olive. The surfaces are now warm neutrals
+   that get out of the artwork's way.
    ========================================================================== */
 
 :root {
-    /* Ground + surfaces: green-biased neutrals, not flat grey */
-    --bg: #0F1A12;
-    --surface: #18271A;
-    --surface-hi: #223122;
-    --border: #35492E;
-    --border-hi: #4A6340;
+    /* Ground + surfaces: warm-biased neutrals, not flat grey */
+    --bg: #15110C;
+    --surface: #221C14;
+    --surface-hi: #2E2619;
+    --border: #3E3325;
+    --border-hi: #574733;
 
-    /* Banana yellow carries the identity: highest contrast on jungle green,
-       so it does the heavy lifting on headings and icons. */
+    /* Banana yellow carries the identity and is unchanged: it reads better on
+       a warm ground than it did on green, and it is the one thing the old
+       palette got right. */
     --accent: #F5B921;
     --accent-ink: #2A1D02;             /* text that sits on yellow */
     --accent-soft: rgba(245, 185, 33, 0.13);
@@ -35,19 +40,19 @@
     --wood: #8A5325;
     --vine: #6FA83C;
 
-    --text: #F5F1E3;                   /* warm off-white, not clinical */
-    --text-muted: #A7B79C;
+    --text: #F7F1E4;                   /* warm off-white, not clinical */
+    --text-muted: #B5A88F;             /* warm grey; was green-grey */
 
     /* Wallpaper scrim. Heavier at the bottom, where the art is busiest.
        The mobile artwork is much brighter, so it gets its own pair below. */
-    --scrim-top: rgba(12, 20, 14, 0.72);
-    --scrim-bottom: rgba(12, 20, 14, 0.88);
+    --scrim-top: rgba(20, 14, 8, 0.72);
+    --scrim-bottom: rgba(20, 14, 8, 0.88);
 
     /* background-mobile.jpg is far brighter - mean rgb(160,127,33) against the
        wallpaper's rgb(91,61,33), with pure white highlights. At the desktop
        scrim the gold accent drops to 4.25:1 and fails AA, so it needs more. */
-    --scrim-top-sm: rgba(12, 20, 14, 0.82);
-    --scrim-bottom-sm: rgba(12, 20, 14, 0.90);
+    --scrim-top-sm: rgba(20, 14, 8, 0.82);
+    --scrim-bottom-sm: rgba(20, 14, 8, 0.90);
 
     --font-display: 'Titan One', 'Arial Black', system-ui, sans-serif;
     --font-body: 'Rubik', 'Segoe UI', system-ui, -apple-system, sans-serif;

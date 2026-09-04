@@ -124,7 +124,7 @@
                         <div class="col-4">
                             <label for="backgroundColor" class="form-label">Background</label>
                             <input type="color" class="form-control form-control-color"
-                                   id="backgroundColor" value="#0F1A12">
+                                   id="backgroundColor" value="#15110C">
                         </div>
                         <div class="col-4">
                             <label for="accentColor" class="form-label">Accent</label>
@@ -134,7 +134,7 @@
                         <div class="col-4">
                             <label for="textColor" class="form-label">Text</label>
                             <input type="color" class="form-control form-control-color"
-                                   id="textColor" value="#F5F1E3">
+                                   id="textColor" value="#F7F1E4">
                         </div>
                     </div>
                     <button type="submit" class="btn btn-primary mt-3">Save Preferences</button>
@@ -257,9 +257,9 @@ document.addEventListener('DOMContentLoaded', function () {
             document.getElementById('siteTitle').value = data.site_title || '';
             document.getElementById('siteDescription').value = data.site_description || '';
             document.getElementById('profileImage').value = data.profile_image || '';
-            document.getElementById('backgroundColor').value = data.background_color || '#0F1A12';
+            document.getElementById('backgroundColor').value = data.background_color || '#15110C';
             document.getElementById('accentColor').value = data.accent_color || '#F5B921';
-            document.getElementById('textColor').value = data.text_color || '#F5F1E3';
+            document.getElementById('textColor').value = data.text_color || '#F7F1E4';
         })
         .catch(function () { toast('Could not load preferences', 'error'); });
 

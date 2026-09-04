@@ -3,13 +3,14 @@
    ========================================================================== */
 
 :root {
-    --bg: #0F1A12;
-    --surface: #18271A;
-    --border: #35492E;
+    /* Kept in step with static/styles.css - see the palette note there. */
+    --bg: #15110C;
+    --surface: #221C14;
+    --border: #3E3325;
     --accent: #F5B921;
     --accent-ink: #2A1D02;
-    --text: #F5F1E3;
-    --text-muted: #A7B79C;
+    --text: #F7F1E4;
+    --text-muted: #B5A88F;
 
     --font-display: 'Titan One', 'Arial Black', system-ui, sans-serif;
     --font-body: 'Rubik', 'Segoe UI', system-ui, -apple-system, sans-serif;

@@ -168,10 +168,10 @@ document.addEventListener('DOMContentLoaded', function () {
     var points = JSON.parse(document.getElementById('clicksData').textContent);
     var css = getComputedStyle(document.documentElement);
     var accent = css.getPropertyValue('--accent').trim() || '#F5B921';
-    var ink = css.getPropertyValue('--text').trim() || '#F5F1E3';
-    var muted = css.getPropertyValue('--text-muted').trim() || '#A7B79C';
-    var grid = css.getPropertyValue('--border').trim() || '#35492E';
-    var surface = css.getPropertyValue('--surface').trim() || '#18271A';
+    var ink = css.getPropertyValue('--text').trim() || '#F7F1E4';
+    var muted = css.getPropertyValue('--text-muted').trim() || '#B5A88F';
+    var grid = css.getPropertyValue('--border').trim() || '#3E3325';
+    var surface = css.getPropertyValue('--surface').trim() || '#221C14';
 
     new Chart(document.getElementById('clicksChart'), {
         type: 'bar',
