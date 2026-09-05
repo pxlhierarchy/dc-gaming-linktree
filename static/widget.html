@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DC Gaming - Stream Counter</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Titan+One&family=Rubik:wght@500;600;700&display=swap" rel="stylesheet">
+
+<style>
+/* DC Gaming stream counter.
+
+   Palette and type track static/styles.css - same warm-charcoal ground,
+   banana yellow, blurless offset shadow and 3px borders as the site.
+
+   The page background is TRANSPARENT on purpose: OBS and TikTok LIVE Studio
+   render a browser source over the game, so anything opaque here would sit on
+   screen as a grey slab. Only the card itself is painted. */
+:root {
+    --bg: #15110C;
+    --surface: #221C14;
+    --border: #3E3325;
+    --accent: #F5B921;
+    --accent-ink: #2A1D02;
+    --text: #F7F1E4;
+    --muted: #B5A88F;
+    --live: #6FA83C;
+    --hot: #B32B1E;
+    --display: 'Titan One', 'Arial Black', system-ui, sans-serif;
+    --body: 'Rubik', 'Segoe UI', system-ui, sans-serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+    background: transparent;
+    font-family: var(--body);
+    -webkit-font-smoothing: antialiased;
+}
+
+body {
+    min-height: 100vh;
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-start;
+    padding: 10px;
+    /* Stops a stray drag from selecting the label mid-stream. */
+    user-select: none;
+}
+
+/* ---------------------------------------------------------------- the card */
+.counter {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+
+    min-width: 260px;
+    max-width: 360px;
+    padding: 12px 16px;
+
+    background: var(--surface);
+    border: 3px solid var(--border);
+    border-radius: 10px;
+    box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.55);
+}
+
+.counter.is-live { border-color: var(--accent); }
+
+/* Left column: the live dot and the label. */
+.meta { flex: 1; min-width: 0; }
+
+.dot {
+    display: inline-block;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--muted);
+    margin-right: 7px;
+    vertical-align: 1px;
+}
+.counter.is-live .dot { background: var(--live); }
+
+.label {
+    display: inline;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text);
+    text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.6);
+    cursor: text;
+    overflow-wrap: anywhere;
+}
+
+.label-input {
+    width: 100%;
+    font: inherit;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text);
+    background: var(--bg);
+    border: 2px solid var(--accent);
+    border-radius: 5px;
+    padding: 2px 6px;
+}
+
+/* Right: the number. Tabular figures so it does not jump width as it ticks. */
+.count {
+    font-family: var(--display);
+    font-size: 42px;
+    line-height: 1;
+    color: var(--accent);
+    font-variant-numeric: tabular-nums;
+    text-shadow: 3px 3px 0 rgba(0, 0, 0, 0.65);
+}
+
+.count.bump { animation: bump 0.22s var(--ease, cubic-bezier(0.2, 0.8, 0.2, 1)); }
+@keyframes bump {
+    0%   { transform: scale(1); }
+    40%  { transform: scale(1.22); }
+    100% { transform: scale(1); }
+}
+
+/* -------------------------------------------------------------- the controls
+   Hidden until the pointer is over the widget. A browser source in OBS never
+   hovers, so on stream only the label and number ever show; in a real browser
+   window they appear the moment you reach for them. Press H to pin them. */
+.controls {
+    position: absolute;
+    left: 0; top: calc(100% + 6px);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s ease;
+}
+
+.counter:hover .controls,
+body.show-controls .controls { opacity: 1; pointer-events: auto; }
+
+button {
+    font-family: var(--body);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text);
+    background: var(--surface);
+    border: 2px solid var(--border);
+    border-radius: 6px;
+    padding: 5px 9px;
+    cursor: pointer;
+}
+
+button:hover { border-color: var(--accent); color: var(--accent); }
+button.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+button.danger:hover { border-color: var(--hot); color: #fff; background: var(--hot); }
+button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.hint {
+    font-size: 10px;
+    color: var(--muted);
+    align-self: center;
+    padding-left: 2px;
+}
+
+kbd {
+    font-family: var(--body);
+    font-size: 10px;
+    font-weight: 700;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 1px 4px;
+    color: var(--accent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .count.bump { animation: none; }
+    * { transition: none !important; }
+}
+</style>
+</head>
+<body>
+
+<div class="counter" id="card">
+    <div class="meta">
+        <span class="dot" aria-hidden="true"></span><span class="label" id="label" title="Click to rename">Death Counter</span>
+    </div>
+    <div class="count" id="count" aria-live="polite">0</div>
+
+    <div class="controls">
+        <button id="toggle" class="primary">Start</button>
+        <button id="plus">+1</button>
+        <button id="minus">-1</button>
+        <button id="reset" class="danger">Reset</button>
+        <button id="rebind">Key: <kbd id="keyName">Space</kbd></button>
+        <span class="hint" id="hint"></span>
+    </div>
+</div>
+
+<script>
+(function () {
+    'use strict';
+
+    // One key per field rather than a blob, so a corrupt value loses one
+    // setting instead of the whole widget.
+    var KEY = { count: 'dcCount', label: 'dcLabel', bind: 'dcBind', live: 'dcLive' };
+
+    function load(k, fallback) {
+        try {
+            var v = localStorage.getItem(k);
+            return v === null ? fallback : v;
+        } catch (e) { return fallback; }        // private mode / storage blocked
+    }
+    function save(k, v) {
+        try { localStorage.setItem(k, v); } catch (e) { /* not fatal */ }
+    }
+
+    var el = {
+        card: document.getElementById('card'),
+        label: document.getElementById('label'),
+        count: document.getElementById('count'),
+        toggle: document.getElementById('toggle'),
+        plus: document.getElementById('plus'),
+        minus: document.getElementById('minus'),
+        reset: document.getElementById('reset'),
+        rebind: document.getElementById('rebind'),
+        keyName: document.getElementById('keyName'),
+        hint: document.getElementById('hint')
+    };
+
+    var count = parseInt(load(KEY.count, '0'), 10);
+    if (isNaN(count)) count = 0;
+    var label = load(KEY.label, 'Death Counter');
+    var bind = load(KEY.bind, 'Space');
+    var live = load(KEY.live, '0') === '1';
+    var rebinding = false;
+    var resetArmed = false;
+
+    function keyLabel(code) {
+        if (code === 'Space') return 'Space';
+        if (code.indexOf('Key') === 0) return code.slice(3);
+        if (code.indexOf('Digit') === 0) return code.slice(5);
+        if (code.indexOf('Numpad') === 0) return 'Num ' + code.slice(6);
+        return code;
+    }
+
+    function render() {
+        el.count.textContent = count;
+        el.label.textContent = label;
+        el.keyName.textContent = rebinding ? 'press a key' : keyLabel(bind);
+        el.card.classList.toggle('is-live', live);
+        el.toggle.textContent = live ? 'Pause' : 'Start';
+        el.reset.textContent = resetArmed ? 'Sure?' : 'Reset';
+        el.hint.textContent = live
+            ? keyLabel(bind) + ' +1  ·  shift +' + keyLabel(bind) + ' -1'
+            : 'paused - hotkey off';
+    }
+
+    function bump() {
+        el.count.classList.remove('bump');
+        void el.count.offsetWidth;              // restart the animation
+        el.count.classList.add('bump');
+    }
+
+    function set(n) {
+        count = Math.max(0, n);                 // a death counter cannot go negative
+        save(KEY.count, count);
+        bump();
+        render();
+    }
+
+    function disarmReset() {
+        if (resetArmed) { resetArmed = false; render(); }
+    }
+
+    // ------------------------------------------------------------- controls
+    el.plus.addEventListener('click', function () { disarmReset(); set(count + 1); });
+    el.minus.addEventListener('click', function () { disarmReset(); set(count - 1); });
+
+    el.toggle.addEventListener('click', function () {
+        live = !live;
+        save(KEY.live, live ? '1' : '0');
+        disarmReset();
+        render();
+    });
+
+    // Two-step, because one stray click mid-stream would otherwise wipe a
+    // whole session's count with no undo.
+    el.reset.addEventListener('click', function () {
+        if (!resetArmed) { resetArmed = true; render(); return; }
+        resetArmed = false;
+        set(0);
+    });
+
+    el.rebind.addEventListener('click', function () {
+        rebinding = true;
+        disarmReset();
+        render();
+    });
+
+    // Click the label to rename it; Enter or blur commits, Escape cancels.
+    el.label.addEventListener('click', function () {
+        var input = document.createElement('input');
+        input.className = 'label-input';
+        input.value = label;
+        input.maxLength = 40;
+        el.label.replaceWith(input);
+        input.focus();
+        input.select();
+
+        var done = false;
+        function finish(commit) {
+            if (done) return;
+            done = true;
+            if (commit && input.value.trim()) {
+                label = input.value.trim();
+                save(KEY.label, label);
+            }
+            input.replaceWith(el.label);
+            render();
+        }
+        input.addEventListener('keydown', function (e) {
+            e.stopPropagation();                 // never let typing hit the counter
+            if (e.key === 'Enter') finish(true);
+            if (e.key === 'Escape') finish(false);
+        });
+        input.addEventListener('blur', function () { finish(true); });
+    });
+
+    // -------------------------------------------------------------- hotkeys
+    document.addEventListener('keydown', function (e) {
+        if (e.target.tagName === 'INPUT') return;
+
+        if (rebinding) {
+            e.preventDefault();
+            if (e.code !== 'Escape') { bind = e.code; save(KEY.bind, bind); }
+            rebinding = false;
+            render();
+            return;
+        }
+
+        if (e.code === 'KeyH') { document.body.classList.toggle('show-controls'); return; }
+
+        if (e.code === bind) {
+            // Space scrolls the page by default, which shifts the widget in a
+            // captured window.
+            e.preventDefault();
+            if (!live) return;                   // paused means paused
+            set(count + (e.shiftKey ? -1 : 1));
+            disarmReset();
+        }
+    });
+
+    render();
+}());
+</script>
+</body>
+</html>
