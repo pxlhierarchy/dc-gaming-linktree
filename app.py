@@ -274,6 +274,24 @@ def track_click(id):
     return redirect(link.url)
 
 
+@app.route('/widget')
+def widget():
+    """Stream counter overlay, at a URL that is tolerable to type.
+
+    Serves static/widget.html. Streaming apps take a browser source as a URL,
+    and /static/widget.html is awkward to paste into one; this is the same file
+    behind a clean path.
+
+    Cached for five minutes rather than the site-wide day: an overlay gets
+    tweaked between streams, and waiting out a 24-hour cache to see a change is
+    the wrong trade for a file this small.
+    """
+    response = app.send_static_file('widget.html')
+    response.cache_control.max_age = 300
+    response.cache_control.public = True
+    return response
+
+
 @app.route('/api/links')
 def get_links():
     links = Link.query.order_by(Link.position, Link.created_at.desc()).all()
