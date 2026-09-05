@@ -292,6 +292,20 @@ def widget():
     return response
 
 
+@app.route('/shot')
+def shot():
+    """Looping shot-drinking animation for a stream overlay.
+
+    Same reasoning as /widget: streaming apps take a browser source as a URL,
+    and this one is short enough to type. ?loop=0 plays once per click or
+    keypress, ?speed= and ?dur= change the pace.
+    """
+    response = app.send_static_file('shot.html')
+    response.cache_control.max_age = 300
+    response.cache_control.public = True
+    return response
+
+
 @app.route('/api/links')
 def get_links():
     links = Link.query.order_by(Link.position, Link.created_at.desc()).all()

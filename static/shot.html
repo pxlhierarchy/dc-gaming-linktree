@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DC Gaming - Shot Monkey</title>
+<style>
+/* DC Gaming shot animation.
+
+   Drawn as SVG rather than shipped as a GIF: it stays crisp at any overlay
+   size, the background is genuinely transparent instead of matted onto a
+   colour, and the palette is the site's own tokens rather than baked pixels.
+
+   The character is original art, not a traced game sprite.
+
+   Transparent page background, same as widget.html - a browser source is
+   composited over gameplay, so anything opaque here lands on screen as a slab. */
+:root {
+    --fur:        #8A5325;   /* --wood from the site palette */
+    --fur-dark:   #5E3818;
+    --skin:       #E8CFA4;
+    --skin-dark:  #C8A87C;
+    --ink:        #1A1209;
+    --liquid:     #F5B921;   /* --accent: a banana shot */
+    --liquid-top: #FFD75E;
+    --glass:      rgba(247, 241, 228, 0.30);
+    --glass-edge: #F7F1E4;
+
+    --dur: 3.2s;             /* one full loop */
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+    background: transparent;
+    height: 100%;
+}
+
+body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+    cursor: pointer;
+}
+
+#stage {
+    width: min(100vw, 100vh);
+    max-width: 340px;
+    /* Hard blurless shadow, the site's house style. */
+    filter: drop-shadow(5px 5px 0 rgba(0, 0, 0, 0.45));
+}
+
+/* Every animated group is rigged the same way: fill-box so the origin is the
+   shape's own centre rather than the whole SVG canvas. */
+#body, #headRig, #head, #armGlass, #liquid, #eyeL, #eyeR, #brows, #splash, #lines {
+    transform-box: fill-box;
+}
+
+/* ------------------------------------------------------------------ timing
+   0-12    settle
+   12-28   raise the glass to the muzzle
+   28-34   hold
+   34-54   tip head back, glass empties
+   54-64   head returns, swallow
+   64-72   slam it down
+   72-88   shudder
+   88-100  settle again                                                      */
+
+#body {
+    transform-origin: 50% 100%;
+    animation: body var(--dur) infinite;
+}
+@keyframes body {
+    0%, 12%   { transform: scaleY(1)     translateY(0); }
+    28%       { transform: scaleY(1.02)  translateY(-2px); }
+    54%       { transform: scaleY(0.99)  translateY(1px); }
+    64%       { transform: scaleY(1.06)  translateY(-3px); }
+    68%       { transform: scaleY(0.93)  translateY(4px); }   /* the slam */
+    72%       { transform: scaleY(1.03)  translateY(-1px); }
+    76%, 100% { transform: scaleY(1)     translateY(0); }
+}
+
+/* The head tips back from the neck, not from its own middle. */
+#headRig {
+    transform-origin: 50% 92%;
+    animation: head var(--dur) infinite;
+}
+@keyframes head {
+    0%, 28%   { transform: rotate(0deg)   translateY(0); }
+    38%       { transform: rotate(-15deg) translateY(-2px); }
+    50%       { transform: rotate(-26deg) translateY(-3px); }  /* fully back */
+    58%       { transform: rotate(-4deg)  translateY(0); }
+    64%       { transform: rotate(3deg)   translateY(2px); }   /* gulp */
+    72%       { transform: rotate(0deg)   translateY(0); }
+    78%       { transform: rotate(6deg); }                      /* shudder */
+    82%       { transform: rotate(-5deg); }
+    86%       { transform: rotate(3deg); }
+    90%, 100% { transform: rotate(0deg); }
+}
+
+/* Paw and glass travel together - a jointed arm reads as noise at overlay size. */
+#armGlass {
+    transform-origin: 50% 50%;
+    animation: armGlass var(--dur) infinite;
+}
+@keyframes armGlass {
+    0%, 12%   { transform: translate(0, 0) rotate(0deg); }
+    28%       { transform: translate(-34px, -46px) rotate(-8deg); }   /* to the muzzle */
+    34%       { transform: translate(-34px, -46px) rotate(-8deg); }
+    50%       { transform: translate(-30px, -52px) rotate(-64deg); }  /* tipped up */
+    58%       { transform: translate(-30px, -34px) rotate(-20deg); }
+    64%       { transform: translate(-6px, 4px)   rotate(4deg); }
+    68%       { transform: translate(0, 12px)     rotate(0deg); }     /* slammed down */
+    74%, 100% { transform: translate(0, 0)        rotate(0deg); }
+}
+
+/* The liquid empties as the glass tips. Origin is the bottom, so it drains
+   downward instead of shrinking toward the middle. */
+#liquid {
+    transform-origin: 50% 100%;
+    animation: liquid var(--dur) infinite;
+}
+@keyframes liquid {
+    0%, 36%   { transform: scaleY(1); }
+    50%       { transform: scaleY(0); }      /* empty by the top of the tip */
+    72%       { transform: scaleY(0); }
+    73%       { transform: scaleY(0); }
+    88%       { transform: scaleY(1); }      /* refilled off-beat, ready to loop */
+    100%      { transform: scaleY(1); }
+}
+
+/* Eyes squeeze shut on the swallow - the bit that sells it. */
+#eyeL, #eyeR {
+    transform-origin: 50% 50%;
+    animation: squint var(--dur) infinite;
+}
+@keyframes squint {
+    0%, 44%   { transform: scaleY(1); }
+    54%       { transform: scaleY(0.12); }
+    68%       { transform: scaleY(0.12); }
+    76%       { transform: scaleY(1.15); }   /* pops back open */
+    82%, 100% { transform: scaleY(1); }
+}
+
+#brows {
+    transform-origin: 50% 50%;
+    animation: brows var(--dur) infinite;
+}
+@keyframes brows {
+    0%, 44%   { transform: translateY(0); }
+    56%       { transform: translateY(4px); }
+    76%       { transform: translateY(-3px); }
+    86%, 100% { transform: translateY(0); }
+}
+
+/* Impact marks, only around the slam. */
+#lines {
+    transform-origin: 50% 50%;
+    opacity: 0;
+    animation: lines var(--dur) infinite;
+}
+@keyframes lines {
+    0%, 66%  { opacity: 0; transform: scale(0.7); }
+    70%      { opacity: 1; transform: scale(1); }
+    78%      { opacity: 0; transform: scale(1.25); }
+    100%     { opacity: 0; }
+}
+
+#splash {
+    transform-origin: 50% 100%;
+    opacity: 0;
+    animation: splash var(--dur) infinite;
+}
+@keyframes splash {
+    0%, 34%  { opacity: 0; transform: translateY(0) scale(0.6); }
+    40%      { opacity: 1; transform: translateY(-6px) scale(1); }
+    50%      { opacity: 0; transform: translateY(-14px) scale(1.1); }
+    100%     { opacity: 0; }
+}
+
+/* Play-once mode: ?loop=0. Everything runs a single cycle, then a click or a
+   keypress replays it. */
+body.once #body, body.once #headRig, body.once #armGlass, body.once #liquid,
+body.once #eyeL, body.once #eyeR, body.once #brows, body.once #lines, body.once #splash {
+    animation-iteration-count: 1;
+}
+
+body.paused * { animation-play-state: paused !important; }
+
+/* No prefers-reduced-motion rule here, deliberately. Headless Chromium - which
+   is what OBS and TikTok LIVE Studio embed - commonly reports `reduce`
+   regardless of the streamer's OS setting, so a slowdown keyed on it silently
+   put this overlay into slow motion with nothing to diagnose. It is an opt-in
+   decorative graphic the streamer chose to add, and viewers receive a video
+   stream rather than this page, so there is no viewer preference to honour.
+   Use ?dur= or ?speed= to slow it down on purpose. */
+</style>
+</head>
+<body>
+
+<svg id="stage" viewBox="0 0 200 210" xmlns="http://www.w3.org/2000/svg" role="img"
+     aria-label="A cartoon ape drinking a shot and shaking it off, looping.">
+
+  <!-- ground shadow -->
+  <ellipse cx="100" cy="196" rx="48" ry="8" fill="#000" opacity="0.28"/>
+
+  <g id="body">
+    <!-- torso -->
+    <path d="M56 196 Q52 140 76 128 L124 128 Q148 140 144 196 Z"
+          fill="var(--fur)" stroke="var(--ink)" stroke-width="5" stroke-linejoin="round"/>
+    <!-- belly -->
+    <ellipse cx="100" cy="168" rx="27" ry="24" fill="var(--skin)"
+             stroke="var(--ink)" stroke-width="4"/>
+    <!-- resting paw -->
+    <ellipse cx="58" cy="166" rx="13" ry="16" fill="var(--fur-dark)"
+             stroke="var(--ink)" stroke-width="4.5"/>
+  </g>
+
+  <g id="headRig">
+    <g id="head">
+      <!-- ears -->
+      <circle cx="55" cy="86" r="15" fill="var(--fur)" stroke="var(--ink)" stroke-width="5"/>
+      <circle cx="145" cy="86" r="15" fill="var(--fur)" stroke="var(--ink)" stroke-width="5"/>
+      <circle cx="55" cy="86" r="6.5" fill="var(--skin-dark)"/>
+      <circle cx="145" cy="86" r="6.5" fill="var(--skin-dark)"/>
+
+      <!-- skull -->
+      <ellipse cx="100" cy="80" rx="45" ry="43" fill="var(--fur)"
+               stroke="var(--ink)" stroke-width="5"/>
+      <!-- brow ridge / face patch -->
+      <path d="M62 66 Q100 40 138 66 Q140 86 128 92 L72 92 Q60 86 62 66 Z"
+            fill="var(--fur-dark)" opacity="0.55"/>
+
+      <!-- muzzle -->
+      <ellipse cx="100" cy="99" rx="33" ry="24" fill="var(--skin)"
+               stroke="var(--ink)" stroke-width="4.5"/>
+      <ellipse cx="90" cy="92" rx="3" ry="4" fill="var(--ink)" opacity="0.8"/>
+      <ellipse cx="110" cy="92" rx="3" ry="4" fill="var(--ink)" opacity="0.8"/>
+      <!-- open mouth: the glass empties into this -->
+      <ellipse cx="100" cy="108" rx="13" ry="9" fill="var(--ink)" opacity="0.85"/>
+
+      <g id="brows">
+        <path d="M74 58 Q84 51 95 57" fill="none" stroke="var(--ink)"
+              stroke-width="5.5" stroke-linecap="round"/>
+        <path d="M105 57 Q116 51 126 58" fill="none" stroke="var(--ink)"
+              stroke-width="5.5" stroke-linecap="round"/>
+      </g>
+
+      <g id="eyeL">
+        <ellipse cx="85" cy="72" rx="11" ry="12" fill="#fff"
+                 stroke="var(--ink)" stroke-width="3.5"/>
+        <circle cx="86" cy="73" r="5" fill="var(--ink)"/>
+      </g>
+      <g id="eyeR">
+        <ellipse cx="115" cy="72" rx="11" ry="12" fill="#fff"
+                 stroke="var(--ink)" stroke-width="3.5"/>
+        <circle cx="116" cy="73" r="5" fill="var(--ink)"/>
+      </g>
+    </g>
+
+    <!-- splash of liquid at the moment it goes down -->
+    <g id="splash">
+      <circle cx="94" cy="104" r="3" fill="var(--liquid-top)"/>
+      <circle cx="107" cy="101" r="2.4" fill="var(--liquid-top)"/>
+      <circle cx="100" cy="96" r="2" fill="var(--liquid-top)"/>
+    </g>
+  </g>
+
+  <!-- paw + shot glass, rigged as one piece -->
+  <g id="armGlass">
+    <!-- glass body -->
+    <path d="M132 122 L166 122 L161 164 L137 164 Z"
+          fill="var(--glass)" stroke="var(--glass-edge)" stroke-width="4"
+          stroke-linejoin="round"/>
+    <!-- liquid, clipped to the glass interior -->
+    <clipPath id="glassClip">
+      <path d="M134 124 L164 124 L159.5 162 L138.5 162 Z"/>
+    </clipPath>
+    <g clip-path="url(#glassClip)">
+      <!-- The surface highlight is INSIDE the scaling group: outside it, it
+           stayed put and the glass read as full even when drained. -->
+      <g id="liquid">
+        <rect x="134" y="132" width="30" height="30" fill="var(--liquid)"/>
+        <rect x="134" y="132" width="30" height="4" fill="var(--liquid-top)"/>
+      </g>
+    </g>
+    <!-- rim highlight -->
+    <path d="M132 122 L166 122" stroke="var(--glass-edge)" stroke-width="4"
+          stroke-linecap="round"/>
+    <!-- paw gripping it -->
+    <ellipse cx="149" cy="152" rx="17" ry="14" fill="var(--fur-dark)"
+             stroke="var(--ink)" stroke-width="4.5"/>
+    <ellipse cx="149" cy="150" rx="8" ry="6" fill="var(--skin-dark)" opacity="0.7"/>
+  </g>
+
+  <!-- slam impact marks -->
+  <g id="lines" stroke="var(--liquid)" stroke-width="4" stroke-linecap="round">
+    <path d="M40 178 L26 172"/>
+    <path d="M46 190 L31 190"/>
+    <path d="M160 178 L174 172"/>
+    <path d="M154 190 L169 190"/>
+  </g>
+</svg>
+
+<script>
+(function () {
+    'use strict';
+    var params = new URLSearchParams(location.search);
+
+    // ?speed=1.5 runs it half again as fast; ?dur=4s sets the loop outright.
+    var speed = parseFloat(params.get('speed'));
+    if (speed > 0) {
+        document.documentElement.style.setProperty('--dur', (3.2 / speed).toFixed(2) + 's');
+    }
+    if (params.get('dur')) {
+        document.documentElement.style.setProperty('--dur', params.get('dur'));
+    }
+
+    // ?loop=0 plays once, then waits to be triggered again.
+    var once = params.get('loop') === '0';
+    if (once) document.body.classList.add('once');
+
+    function replay() {
+        if (!once) return;
+        var svg = document.getElementById('stage');
+        svg.style.display = 'none';
+        void svg.offsetWidth;          // force reflow so the animations restart
+        svg.style.display = '';
+    }
+
+    document.addEventListener('click', replay);
+    document.addEventListener('keydown', function (e) {
+        if (e.code === 'Space' || e.code === 'Enter') { e.preventDefault(); replay(); }
+        if (e.code === 'KeyP') document.body.classList.toggle('paused');
+    });
+}());
+</script>
+</body>
+</html>
